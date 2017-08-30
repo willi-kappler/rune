@@ -1,16 +1,14 @@
-use rand;
-
 use canvas::Canvas;
 
 pub struct Widget {
-    id: u64,
-    x: u32,
-    y: u32,
-    w: u32,
-    h: u32,
-    canvas: Canvas,
-    active: bool,
-    widgets: Vec<Box<WidgetTrait>>,
+    pub id: u32,
+    pub x: u32,
+    pub y: u32,
+    pub w: u32,
+    pub h: u32,
+    pub canvas: Canvas,
+    pub active: bool,
+    pub widgets: Vec<Box<WidgetTrait>>,
 }
 
 pub trait WidgetTrait {
@@ -22,9 +20,9 @@ pub trait WidgetTrait {
     fn process_event(&self) {}
 }
 
-pub fn new_widget(x: u32, y: u32, w: u32, h: u32) -> Widget  {
+pub fn new_widget(id: u32, x: u32, y: u32, w: u32, h: u32) -> Widget  {
     Widget {
-        id: rand::random::<u64>(),
+        id: id,
         x: x,
         y: y,
         w: w,
