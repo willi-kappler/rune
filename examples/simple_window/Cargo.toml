@@ -1,0 +1,10 @@
+[package]
+name = "simple_window"
+version = "0.1.0"
+authors = ["Willi Kappler <grandor@gmx.de>"]
+license = "MIT"
+
+[dependencies]
+rune = {path = "../../../rune"}
+
+

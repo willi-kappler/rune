@@ -1,0 +1,22 @@
+[package]
+name = "rune"
+version = "0.1.0"
+authors = ["Willi Kappler <grandor@gmx.de>"]
+license = "MIT"
+description = "Simple GUI for Rust."
+readme = "README.md"
+repository = "https://github.com/willi-kappler/rune"
+exclude = ["target"]
+keywords = ["GUI", "UI"]
+documentation = "https://docs.rs/rune/0.1.0/rune/"
+
+
+
+[dependencies]
+error-chain = "0.10.0"
+rand = "0.3"
+
+[dependencies.sdl2]
+version = "0.30"
+#features = ["image"]
+#features = ["ttf","image","gfx","mixer"]
