@@ -11,12 +11,14 @@ use sdl2::event::{Event, WindowEvent};
 use window::{RuneWindow, RuneWindowInternal};
 use widget::new_widget;
 use error::{Result, ResultExt};
+use event::{RuneEvent, RuneAction};
 
 pub struct Rune {
     sdl_context: sdl2::Sdl,
     video_subsystem: sdl2::VideoSubsystem,
     event_pump: sdl2::EventPump,
     windows: Vec<Rc<RefCell<RuneWindowInternal>>>,
+    quit: bool,
 }
 
 impl Rune {
@@ -31,6 +33,7 @@ impl Rune {
                 video_subsystem: video_subsystem,
                 event_pump: event_pump,
                 windows: Vec::new(),
+                quit: false,
             }
         )
     }
@@ -48,47 +51,50 @@ impl Rune {
             title: title.to_string(),
             sdl_window: sdl_window,
             widget: new_widget(window_id, 0, 0, w, h),
+            event_handler: Box::new(move |e| RuneAction::HideWindow(window_id) ),
         }));
 
         self.windows.push(internal_window.clone());
 
-        Ok(RuneWindow{ rune_window: internal_window.clone() })
+        Ok(RuneWindow{ rune_window: internal_window })
     }
 
     pub fn run(&mut self) {
-        let mut quit = false;
-        let mut hidden_windows = 0;
+        self.quit = false;
 
-        while !quit {
+        let mut result_action = RuneAction::None;
+
+        while !self.quit {
             for event in self.event_pump.poll_iter() {
                 match event {
-                    Event::Quit {..} => {
-                        quit = true;
-                        break;
-                    },
                     Event::Window { timestamp: t, window_id: id, win_event: we } => {
-                        match we {
-                            WindowEvent::Close => {
-                                for w in self.windows.iter() {
-                                    let w_id = w.borrow().widget.id;
-                                    if w_id == id {
-                                        w.borrow_mut().sdl_window.hide();
-                                        hidden_windows = hidden_windows + 1;
-                                        if hidden_windows == self.windows.len() {
-                                            quit = true;
-                                        }
-                                        break;
-                                    }
-                                }
-                            },
-                            _ => {
-                                // TODO: process more events...
+                        for w in self.windows.iter() {
+                            let w_id = w.borrow().widget.id;
+                            if w_id == id {
+                                result_action = w.borrow_mut().process_event(we);
                             }
                         }
                     },
                     _ => {
                         // TODO: process more events...
                     }
+                }
+            }
+
+            match result_action {
+                RuneAction::ApplicationQuit => {
+                    self.quit = true;
+                },
+                RuneAction::HideWindow(id) => {
+                    for w in self.windows.iter() {
+                        let w_id = w.borrow().widget.id;
+                        if w_id == id {
+                            w.borrow_mut().hide();
+                        }
+                    }
+                },
+                _ => {
+                    // TODO: process more events...
                 }
             }
         }
