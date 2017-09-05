@@ -62,17 +62,43 @@ impl Rune {
     pub fn run(&mut self) {
         self.quit = false;
 
-        let mut result_action = RuneAction::None;
+        let mut result_actions = Vec::new();
 
         while !self.quit {
             for event in self.event_pump.poll_iter() {
                 match event {
-                    Event::Window { timestamp: t, window_id: id, win_event: we } => {
+                    Event::Window { timestamp: _, window_id: id, win_event: we } => {
                         for w in self.windows.iter() {
-                            let w_id = w.borrow().widget.id;
-                            if w_id == id {
-                                result_action = w.borrow_mut().process_event(we);
-                            }
+                            result_actions.push(w.borrow_mut().process_window_event(id, we));
+                        }
+                    },
+                    Event::MouseButtonDown { timestamp: _, window_id: id, which: _, mouse_btn: btn, x: x, y: y } => {
+                        for w in self.windows.iter() {
+                            result_actions.push(w.borrow_mut().process_mouse_down_event(id, btn, x, y));
+                        }
+                    },
+                    Event::MouseButtonUp { timestamp: _, window_id: id, which: _, mouse_btn: btn, x: x, y: y } => {
+                        for w in self.windows.iter() {
+                            result_actions.push(w.borrow_mut().process_mouse_up_event(id, btn, x, y));
+                        }
+                    },
+
+
+                    _ => {
+                        // TODO: process more events...
+                    }
+                }
+            }
+
+            for action in result_actions.iter() {
+                match *action {
+                    RuneAction::ApplicationQuit => {
+                        self.quit = true;
+                        break;
+                    },
+                    RuneAction::HideWindow(id) => {
+                        for w in self.windows.iter() {
+                            w.borrow_mut().hide(id);
                         }
                     },
                     _ => {
@@ -81,22 +107,7 @@ impl Rune {
                 }
             }
 
-            match result_action {
-                RuneAction::ApplicationQuit => {
-                    self.quit = true;
-                },
-                RuneAction::HideWindow(id) => {
-                    for w in self.windows.iter() {
-                        let w_id = w.borrow().widget.id;
-                        if w_id == id {
-                            w.borrow_mut().hide();
-                        }
-                    }
-                },
-                _ => {
-                    // TODO: process more events...
-                }
-            }
+            result_actions.clear();
         }
     }
 }

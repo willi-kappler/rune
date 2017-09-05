@@ -3,6 +3,7 @@ use std::cell::RefCell;
 
 use sdl2::video::{Window};
 use sdl2::event::{WindowEvent};
+use sdl2::mouse::{MouseButton};
 
 use widget::{Widget, new_widget};
 use event::{RuneEvent, RuneAction};
@@ -25,7 +26,11 @@ pub struct RuneWindowInternal {
 }
 
 impl RuneWindowInternal {
-    pub fn process_event(&mut self, event: WindowEvent) -> RuneAction {
+    pub fn process_window_event(&mut self, id: u32, event: WindowEvent) -> RuneAction {
+        if id != self.widget.id {
+            return RuneAction::None;
+        }
+
         match event {
             WindowEvent::Close => {
                 (self.event_handler)(RuneEvent::WindowCloseEvent)
@@ -37,7 +42,19 @@ impl RuneWindowInternal {
         }
     }
 
-    pub fn hide(&mut self) {
+    pub fn process_mouse_down_event(&mut self, id: u32, btn: MouseButton, x: i32, y: i32) -> RuneAction {
+        RuneAction::None
+    }
+
+    pub fn process_mouse_up_event(&mut self, id: u32, btn: MouseButton, x: i32, y: i32) -> RuneAction {
+        RuneAction::None
+    }
+
+    pub fn hide(&mut self, id: u32) {
+        if id != self.widget.id {
+            return;
+        }
+
         self.sdl_window.hide();
     }
 }
