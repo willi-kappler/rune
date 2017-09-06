@@ -51,7 +51,8 @@ impl Rune {
             title: title.to_string(),
             sdl_window: sdl_window,
             widget: new_widget(window_id, 0, 0, w, h),
-            event_handler: Box::new(move |e| RuneAction::HideWindow(window_id) ),
+            event_handler: Box::new(|e| RuneAction::None),
+            on_close: Box::new(move || RuneAction::HideWindow(window_id.clone())),
         }));
 
         self.windows.push(internal_window.clone());
