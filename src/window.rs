@@ -1,73 +1,80 @@
-use std::rc::Rc;
-use std::cell::RefCell;
+use sdl2;
 
-use sdl2::video::{Window};
-use sdl2::event::{WindowEvent};
-use sdl2::mouse::{MouseButton};
+use widget::RuneWidget;
 
-use widget::{Widget, new_widget};
-use event::{RuneEvent, RuneAction, RuneMouseState, RuneMouseButton};
-
-pub struct RuneWindow {
-    pub rune_window: Rc<RefCell<RuneWindowInternal>>,
+enum RuneWindowAction {
+    Hide,
+    Close,
+    None
 }
 
-impl RuneWindow {
-    pub fn process_event<F>(&mut self, event_handler: F) where F: 'static + FnMut(RuneEvent) -> (RuneAction) {
-        self.rune_window.borrow_mut().event_handler = Box::new(event_handler);
+trait RuneWindowHandler {
+    fn on_close(&mut self) -> RuneWindowAction {
+        RuneWindowAction::Hide
+    }
+}
+
+struct DefaultHandler;
+
+impl RuneWindowHandler for DefaultHandler {
+
+}
+
+struct CloseWindowHandler;
+
+impl RuneWindowHandler for CloseWindowHandler {
+    fn on_close(&mut self) -> RuneWindowAction {
+        RuneWindowAction::Close
+    }
+}
+
+pub struct RuneWindow {
+    pub title: String,
+    pub w: u32,
+    pub h: u32,
+    pub widgets: Vec<Box<RuneWidget>>,
+    pub event_handler: Box<RuneWindowHandler>,
+}
+
+pub struct RuneWindowBuilder {
+    title: String,
+    w: u32,
+    h: u32,
+    event_handler: Box<RuneWindowHandler>,
+}
+
+impl RuneWindowBuilder {
+    pub fn new(title: &str, w: u32, h: u32) -> RuneWindowBuilder {
+        RuneWindowBuilder {
+            title: title.to_string(),
+            w,
+            h,
+            event_handler: Box::new(DefaultHandler {}),
+        }
     }
 
-    pub fn on_close<F>(&mut self, event_handler: F) where F: 'static + FnMut() -> (RuneAction) {
-        self.rune_window.borrow_mut().on_close = Box::new(event_handler);
+    pub fn on_close_quit(self) -> RuneWindowBuilder {
+        RuneWindowBuilder {
+            title: self.title,
+            w: self.w,
+            h: self.h,
+            event_handler: Box::new(CloseWindowHandler {}),
+        }
+    }
+
+    pub fn build(self) -> RuneWindow {
+        RuneWindow{
+            title: self.title,
+            w: self.w,
+            h: self.h,
+            widgets: Vec::new(),
+            event_handler: self.event_handler,
+        }
     }
 }
 
 pub struct RuneWindowInternal {
-    pub title: String,
-    pub sdl_window: Window,
-    pub widget: Widget,
-    pub event_handler: Box<FnMut(RuneEvent) -> (RuneAction)>,
-    pub on_close: Box<FnMut() -> (RuneAction)>,
-}
-
-impl RuneWindowInternal {
-    pub fn process_window_event(&mut self, id: u32, event: WindowEvent) -> RuneAction {
-        if id != self.widget.id {
-            return RuneAction::None;
-        }
-
-        match event {
-            WindowEvent::Close => {
-                (self.on_close)()
-            },
-            _ => {
-                // TODO: process more events...
-                RuneAction::None
-            }
-        }
-    }
-
-    pub fn process_mouse_down_event(&mut self, id: u32, btn: MouseButton, x: i32, y: i32) -> RuneAction {
-        if id != self.widget.id {
-            return RuneAction::None;
-        }
-
-        (self.event_handler)(RuneEvent::MouseEvent(RuneMouseState::Press, RuneMouseButton::from(btn), x, y))
-    }
-
-    pub fn process_mouse_up_event(&mut self, id: u32, btn: MouseButton, x: i32, y: i32) -> RuneAction {
-        if id != self.widget.id {
-            return RuneAction::None;
-        }
-
-        (self.event_handler)(RuneEvent::MouseEvent(RuneMouseState::Release, RuneMouseButton::from(btn), x, y))
-    }
-
-    pub fn hide(&mut self, id: u32) {
-        if id != self.widget.id {
-            return;
-        }
-
-        self.sdl_window.hide();
-    }
+    pub rune_window: RuneWindow,
+    pub id: u32,
+    pub sdl_window: sdl2::video::Window,
 }

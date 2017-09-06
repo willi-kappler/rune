@@ -1,15 +1,25 @@
+#[macro_use] extern crate error_chain;
+
 extern crate rune;
 
-use rune::{Rune, RuneEvent, RuneAction};
+use rune::{Rune, RuneWindowBuilder};
 
-fn main() {
-    let mut main_rune = Rune::init().unwrap();
-    let mut window1 = main_rune.new_window("Rune window test 1", 640, 480).unwrap();
-    let window2 = main_rune.new_window("Rune window test 2", 640, 480).unwrap();
-
-    window1.on_close(||
-        RuneAction::ApplicationQuit
-    );
-
-    main_rune.run();
+error_chain!{
+    links {
+        RuneError(rune::error::Error, rune::error::ErrorKind);
+    }
 }
+
+quick_main!(|| -> Result<()> {
+    let mut app = Rune::init()?;
+
+    let win1 = RuneWindowBuilder::new("Rune window 1", 640, 480).on_close_quit().build();
+    let win2 = RuneWindowBuilder::new("Rune window 2", 640, 480).build(); // Hide on close is default
+
+    app.add_window(win1)?;
+    app.add_window(win2)?;
+
+    app.run();
+
+    Ok(())
+});
