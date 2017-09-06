@@ -2,13 +2,13 @@ use sdl2;
 
 use widget::RuneWidget;
 
-enum RuneWindowAction {
+pub enum RuneWindowAction {
     Hide,
     Close,
     None
 }
 
-trait RuneWindowHandler {
+pub trait RuneWindowHandler {
     fn on_close(&mut self) -> RuneWindowAction {
         RuneWindowAction::Hide
     }
