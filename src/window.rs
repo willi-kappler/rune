@@ -4,7 +4,7 @@ use widget::RuneWidget;
 
 pub enum RuneWindowAction {
     Hide,
-    Close,
+    Quit,
     None
 }
 
@@ -24,7 +24,7 @@ struct CloseWindowHandler;
 
 impl RuneWindowHandler for CloseWindowHandler {
     fn on_close(&mut self) -> RuneWindowAction {
-        RuneWindowAction::Close
+        RuneWindowAction::Quit
     }
 }
 
@@ -59,6 +59,15 @@ impl RuneWindowBuilder {
             w: self.w,
             h: self.h,
             event_handler: Box::new(CloseWindowHandler {}),
+        }
+    }
+
+    pub fn set_event_handler<T>(self, event_handler: T) -> RuneWindowBuilder where T: 'static + RuneWindowHandler {
+        RuneWindowBuilder {
+            title: self.title,
+            w: self.w,
+            h: self.h,
+            event_handler: Box::new(event_handler),
         }
     }
 

@@ -60,11 +60,10 @@ impl Rune {
         while !self.quit {
             for event in self.event_pump.poll_iter() {
                 for window in self.windows.iter_mut() {
-                    let action = RuneAction {
+                    rune_actions.push(RuneAction {
                         window_id: window.id,
                         window_action: process_events(window, &event),
-                    };
-                    rune_actions.push(action);
+                    });
                 }
             }
 
@@ -76,7 +75,7 @@ impl Rune {
                                 window.sdl_window.hide()
                             }
                         },
-                        RuneWindowAction::Close => {
+                        RuneWindowAction::Quit => {
                             self.quit = true;
                             break;
                         },

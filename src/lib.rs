@@ -7,4 +7,4 @@ mod window;
 mod widget;
 
 pub use rune::Rune;
-pub use window::RuneWindowBuilder;
+pub use window::{RuneWindowBuilder, RuneWindowHandler, RuneWindowAction};
