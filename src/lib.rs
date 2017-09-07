@@ -6,5 +6,5 @@ pub mod error;
 mod window;
 mod widget;
 
-pub use rune::Rune;
-pub use window::{RuneWindowBuilder, RuneWindowHandler, RuneWindowAction};
+pub use rune::{Rune, RuneAction};
+pub use window::{RuneWindowBuilder, RuneWindowHandler};

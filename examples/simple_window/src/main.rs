@@ -2,7 +2,7 @@
 
 extern crate rune;
 
-use rune::{Rune, RuneWindowBuilder, RuneWindowHandler, RuneWindowAction};
+use rune::{Rune, RuneWindowBuilder, RuneWindowHandler, RuneAction};
 
 error_chain!{
     links {
@@ -15,7 +15,7 @@ struct CustomWindow {
 }
 
 impl RuneWindowHandler for CustomWindow {
-    fn on_close(&mut self) -> RuneWindowAction {
+    fn on_close(&mut self) -> Option<RuneAction> {
         self.counter += 1;
 
         if self.counter == 1 {
@@ -24,19 +24,19 @@ impl RuneWindowHandler for CustomWindow {
             println!("User clicked the close button {} times", self.counter);
         }
 
-        RuneWindowAction::None
+        None
     }
 
-    fn on_move(&mut self, x: i32, y: i32) -> RuneWindowAction {
+    fn on_move(&mut self, x: i32, y: i32) -> Option<RuneAction> {
         println!("Window moved to: {}, {}", x, y);
 
-        RuneWindowAction::None
+        None
     }
 
-    fn on_resize(&mut self, w: i32, h: i32 ) -> RuneWindowAction {
+    fn on_resize(&mut self, w: i32, h: i32 ) -> Option<RuneAction> {
         println!("Window resized to: {}, {}", w, h);
 
-        RuneWindowAction::None
+        None
     }
 }
 

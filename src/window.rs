@@ -1,40 +1,35 @@
 use sdl2;
 
+use rune::{RuneAction, RuneMouseButton};
 use widget::RuneWidget;
 
-pub enum RuneWindowAction {
-    Hide,
-    Quit,
-    None
-}
-
 pub trait RuneWindowHandler {
-    fn on_close(&mut self) -> RuneWindowAction {
-        RuneWindowAction::Hide
+    fn on_close(&mut self) -> Option<RuneAction> {
+        Some(RuneAction::WindowHide)
     }
 
-    fn on_move(&mut self, _: i32, _: i32) -> RuneWindowAction {
-        RuneWindowAction::None
+    fn on_move(&mut self, _: i32, _: i32) -> Option<RuneAction> {
+        None
     }
 
-    fn on_resize(&mut self, _: i32, _: i32) -> RuneWindowAction {
-        RuneWindowAction::None
+    fn on_resize(&mut self, _: i32, _: i32) -> Option<RuneAction> {
+        None
     }
 
-    fn on_minimize(&mut self) -> RuneWindowAction {
-        RuneWindowAction::None
+    fn on_minimize(&mut self) -> Option<RuneAction> {
+        None
     }
 
-    fn on_maximize(&mut self) -> RuneWindowAction {
-        RuneWindowAction::None
+    fn on_maximize(&mut self) -> Option<RuneAction> {
+        None
     }
 
-    fn on_enter(&mut self) -> RuneWindowAction {
-        RuneWindowAction::None
+    fn on_enter(&mut self) -> Option<RuneAction> {
+        None
     }
 
-    fn on_leave(&mut self) -> RuneWindowAction {
-        RuneWindowAction::None
+    fn on_leave(&mut self) -> Option<RuneAction> {
+        None
     }
 }
 
@@ -47,8 +42,8 @@ impl RuneWindowHandler for DefaultHandler {
 struct CloseWindowHandler;
 
 impl RuneWindowHandler for CloseWindowHandler {
-    fn on_close(&mut self) -> RuneWindowAction {
-        RuneWindowAction::Quit
+    fn on_close(&mut self) -> Option<RuneAction> {
+        Some(RuneAction::ApplicationQuit)
     }
 }
 
@@ -58,6 +53,17 @@ pub struct RuneWindow {
     pub h: u32,
     pub widgets: Vec<Box<RuneWidget>>,
     pub event_handler: Box<RuneWindowHandler>,
+}
+
+impl RuneWindow {
+    fn mouse_press(&mut self, mouse_button: RuneMouseButton, x: i32, y: i32) -> Option<RuneAction> {
+        None
+    }
+
+    fn mouse_release(&mut self, mouse_button: RuneMouseButton, x: i32, y: i32) -> Option<RuneAction> {
+        None
+    }
+
 }
 
 pub struct RuneWindowBuilder {

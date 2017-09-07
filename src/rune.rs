@@ -2,11 +2,18 @@ use sdl2;
 use sdl2::event::{Event, WindowEvent};
 use error::{Result};
 
-use window::{RuneWindow, RuneWindowInternal, RuneWindowAction};
+use window::{RuneWindow, RuneWindowInternal};
 
-struct RuneAction {
-    window_id: u32,
-    window_action: RuneWindowAction,
+pub enum RuneAction {
+    ApplicationQuit,
+    WindowHide,
+}
+
+pub enum RuneMouseButton {
+    Left,
+    Middle,
+    Right,
+    Unknown
 }
 
 pub struct Rune {
@@ -55,62 +62,53 @@ impl Rune {
     pub fn run(&mut self) {
         self.quit = false;
 
-        let mut rune_actions = Vec::new();
-
         while !self.quit {
             for event in self.event_pump.poll_iter() {
                 for window in self.windows.iter_mut() {
-                    rune_actions.push(RuneAction {
-                        window_id: window.id,
-                        window_action: process_events(window, &event),
-                    });
-                }
-            }
-
-            for action in rune_actions.iter() {
-                for window in self.windows.iter_mut() {
-                    match action.window_action {
-                        RuneWindowAction::Hide => {
-                            if action.window_id == window.id {
-                                window.sdl_window.hide()
-                            }
-                        },
-                        RuneWindowAction::Quit => {
-                            self.quit = true;
-                            break;
+                    match process_events(window, &event) {
+                        Some(RuneAction::ApplicationQuit) => {
+                            self.quit = true
                         },
                         _ => {
-                            // TODO: add more events...
+                            // Nothing else for now...
                         }
                     }
                 }
             }
-
-            rune_actions.clear();
         }
     }
 }
 
-fn process_events(window: &mut RuneWindowInternal, event: &sdl2::event::Event) -> RuneWindowAction {
+fn process_events(window: &mut RuneWindowInternal, event: &sdl2::event::Event) -> Option<RuneAction> {
     match *event {
         Event::Window { timestamp: _, window_id: id, win_event: window_event } => {
             if window.id == id {
                 process_window_events(window, window_event)
             } else {
-                RuneWindowAction::None
+                None
             }
         },
         _ => {
             // TODO: add more events...
-            RuneWindowAction::None
+            None
         }
     }
 }
 
-fn process_window_events(window: &mut RuneWindowInternal, event: sdl2::event::WindowEvent)  -> RuneWindowAction {
+fn process_window_events(window: &mut RuneWindowInternal, event: sdl2::event::WindowEvent)  -> Option<RuneAction> {
     match event {
         WindowEvent::Close => {
-            (window.rune_window.event_handler).on_close()
+            let action = (window.rune_window.event_handler).on_close();
+
+            match action {
+                Some(RuneAction::WindowHide) => {
+                    window.sdl_window.hide();
+                    None
+                },
+                _ => {
+                    action // Return unhandled action to caller
+                }
+            }
         },
         WindowEvent::Moved(x, y) => {
             (window.rune_window.event_handler).on_move(x, y)
@@ -132,7 +130,7 @@ fn process_window_events(window: &mut RuneWindowInternal, event: sdl2::event::Wi
         },
         _ => {
             // TODO: add more events...
-            RuneWindowAction::None
+            None
         }
     }
 }
