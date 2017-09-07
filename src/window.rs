@@ -57,14 +57,6 @@ pub struct RuneWindow {
 }
 
 impl RuneWindow {
-    fn mouse_press(&mut self, mouse_button: RuneMouseButton, x: i32, y: i32) -> Option<RuneAction> {
-        None
-    }
-
-    fn mouse_release(&mut self, mouse_button: RuneMouseButton, x: i32, y: i32) -> Option<RuneAction> {
-        None
-    }
-
     pub fn add_widget<T>(&mut self, widget: T) where T: 'static + RuneWidget {
         self.widgets.push(Box::new(widget));
     }
@@ -124,4 +116,59 @@ impl RuneWindowInternal {
             widget.draw(&mut self.canvas);
         }
     }
+
+    pub fn mouse_press(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
+        let mut result = None;
+
+        for widget in self.rune_window.widgets.iter_mut() {
+            if widget.contains_point(x, y) {
+                let wx = widget.x();
+                let wy = widget.y();
+
+                result = widget.on_mouse_press(mouse_button, x - wx, y - wy);
+                break;
+            }
+        }
+
+        result
+    }
+
+    pub fn mouse_release(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
+        let mut result = None;
+
+        for widget in self.rune_window.widgets.iter_mut() {
+            if widget.contains_point(x, y) {
+                let wx = widget.x();
+                let wy = widget.y();
+
+                result = widget.on_mouse_release(mouse_button, x - wx, y - wy);
+                break;
+            }
+        }
+
+        result
+    }
+
+    pub fn mouse_move(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
+        let mut result = None;
+
+        for widget in self.rune_window.widgets.iter_mut() {
+            if widget.contains_point(x, y) {
+                let wx = widget.x();
+                let wy = widget.y();
+
+                if !widget.mouse_inside() {
+                    widget.on_mouse_enter();
+                }
+                result = widget.on_mouse_move(mouse_button, x - wx, y - wy);
+            } else {
+                if widget.mouse_inside() {
+                    widget.on_mouse_leave()
+                }
+            }
+        }
+
+        result
+    }
+
 }
