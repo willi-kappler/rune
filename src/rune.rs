@@ -53,7 +53,7 @@ impl Rune {
         let id = sdl_window.id();
 
         let mut sdl_canvas = sdl_window.into_canvas().build()?;
-        sdl_canvas.set_draw_color(pixels::Color::RGB(64, 64, 64));
+        sdl_canvas.set_draw_color(pixels::Color::RGB(0, 0, 0));
         sdl_canvas.clear();
         sdl_canvas.present();
 
@@ -88,7 +88,11 @@ impl Rune {
             }
 
             for window in self.windows.iter_mut() {
+                window.canvas.sdl_canvas.set_draw_color(pixels::Color::RGB(0, 0, 0));
+                window.canvas.sdl_canvas.clear();
                 window.draw();
+                window.canvas.sdl_canvas.present();
+
             }
         }
     }

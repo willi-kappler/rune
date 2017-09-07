@@ -37,7 +37,6 @@ impl RuneWidget for PushButton {
         canvas.sdl_canvas.draw_rect(Rect::new(
              self.base_widget.x as i32, self.base_widget.y as i32,
              self.base_widget.width, self.base_widget.height));
-        canvas.sdl_canvas.present();
     }
 }
 
