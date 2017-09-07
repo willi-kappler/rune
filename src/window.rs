@@ -2,6 +2,7 @@ use sdl2;
 
 use rune::{RuneAction, RuneMouseButton};
 use widget::RuneWidget;
+use canvas::RuneCanvas;
 
 pub trait RuneWindowHandler {
     fn on_close(&mut self) -> Option<RuneAction> {
@@ -49,8 +50,8 @@ impl RuneWindowHandler for CloseWindowHandler {
 
 pub struct RuneWindow {
     pub title: String,
-    pub w: u32,
-    pub h: u32,
+    pub width: u32,
+    pub height: u32,
     pub widgets: Vec<Box<RuneWidget>>,
     pub event_handler: Box<RuneWindowHandler>,
 }
@@ -64,48 +65,47 @@ impl RuneWindow {
         None
     }
 
+    pub fn add_widget<T>(&mut self, widget: T) where T: 'static + RuneWidget {
+        self.widgets.push(Box::new(widget));
+    }
 }
 
 pub struct RuneWindowBuilder {
     title: String,
-    w: u32,
-    h: u32,
+    width: u32,
+    height: u32,
     event_handler: Box<RuneWindowHandler>,
 }
 
 impl RuneWindowBuilder {
-    pub fn new(title: &str, w: u32, h: u32) -> RuneWindowBuilder {
+    pub fn new(title: &str, width: u32, height: u32) -> RuneWindowBuilder {
         RuneWindowBuilder {
             title: title.to_string(),
-            w,
-            h,
+            width,
+            height,
             event_handler: Box::new(DefaultHandler {}),
         }
     }
 
     pub fn on_close_quit(self) -> RuneWindowBuilder {
         RuneWindowBuilder {
-            title: self.title,
-            w: self.w,
-            h: self.h,
             event_handler: Box::new(CloseWindowHandler {}),
+            .. self
         }
     }
 
     pub fn set_event_handler<T>(self, event_handler: T) -> RuneWindowBuilder where T: 'static + RuneWindowHandler {
         RuneWindowBuilder {
-            title: self.title,
-            w: self.w,
-            h: self.h,
             event_handler: Box::new(event_handler),
+            .. self
         }
     }
 
     pub fn build(self) -> RuneWindow {
         RuneWindow{
             title: self.title,
-            w: self.w,
-            h: self.h,
+            width: self.width,
+            height: self.height,
             widgets: Vec::new(),
             event_handler: self.event_handler,
         }
@@ -115,5 +115,13 @@ impl RuneWindowBuilder {
 pub struct RuneWindowInternal {
     pub rune_window: RuneWindow,
     pub id: u32,
-    pub sdl_window: sdl2::video::Window,
+    pub canvas: RuneCanvas,
+}
+
+impl RuneWindowInternal {
+    pub fn draw(&mut self) {
+        for widget in self.rune_window.widgets.iter_mut() {
+            widget.draw(&mut self.canvas);
+        }
+    }
 }

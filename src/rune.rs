@@ -1,8 +1,11 @@
 use sdl2;
 use sdl2::event::{Event, WindowEvent};
+use sdl2::pixels;
+
 use error::{Result};
 
 use window::{RuneWindow, RuneWindowInternal};
+use canvas::{RuneCanvas};
 
 pub enum RuneAction {
     ApplicationQuit,
@@ -41,18 +44,23 @@ impl Rune {
         )
     }
 
-    pub fn add_window(&mut self, w: RuneWindow) -> Result<()> {
+    pub fn add_window(&mut self, rune_window: RuneWindow) -> Result<()> {
         let sdl_window = self.video_subsystem
-            .window(&w.title, w.w, w.h)
+            .window(&rune_window.title, rune_window.width, rune_window.height)
             .resizable()
             .build()?;
 
-        let window_id = sdl_window.id();
+        let id = sdl_window.id();
+
+        let mut sdl_canvas = sdl_window.into_canvas().build()?;
+        sdl_canvas.set_draw_color(pixels::Color::RGB(64, 64, 64));
+        sdl_canvas.clear();
+        sdl_canvas.present();
 
         self.windows.push(RuneWindowInternal{
-            rune_window: w,
-            id: window_id,
-            sdl_window,
+            rune_window,
+            id,
+            canvas: RuneCanvas{ sdl_canvas },
         });
 
         Ok(())
@@ -69,11 +77,18 @@ impl Rune {
                         Some(RuneAction::ApplicationQuit) => {
                             self.quit = true
                         },
+                        Some(RuneAction::WindowHide) => {
+                            window.canvas.sdl_canvas.window_mut().hide();
+                        },
                         _ => {
                             // Nothing else for now...
                         }
                     }
                 }
+            }
+
+            for window in self.windows.iter_mut() {
+                window.draw();
             }
         }
     }
@@ -98,17 +113,7 @@ fn process_events(window: &mut RuneWindowInternal, event: &sdl2::event::Event) -
 fn process_window_events(window: &mut RuneWindowInternal, event: sdl2::event::WindowEvent)  -> Option<RuneAction> {
     match event {
         WindowEvent::Close => {
-            let action = (window.rune_window.event_handler).on_close();
-
-            match action {
-                Some(RuneAction::WindowHide) => {
-                    window.sdl_window.hide();
-                    None
-                },
-                _ => {
-                    action // Return unhandled action to caller
-                }
-            }
+            (window.rune_window.event_handler).on_close()
         },
         WindowEvent::Moved(x, y) => {
             (window.rune_window.event_handler).on_move(x, y)
