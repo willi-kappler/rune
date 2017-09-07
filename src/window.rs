@@ -12,6 +12,30 @@ pub trait RuneWindowHandler {
     fn on_close(&mut self) -> RuneWindowAction {
         RuneWindowAction::Hide
     }
+
+    fn on_move(&mut self, _: i32, _: i32) -> RuneWindowAction {
+        RuneWindowAction::None
+    }
+
+    fn on_resize(&mut self, _: i32, _: i32) -> RuneWindowAction {
+        RuneWindowAction::None
+    }
+
+    fn on_minimize(&mut self) -> RuneWindowAction {
+        RuneWindowAction::None
+    }
+
+    fn on_maximize(&mut self) -> RuneWindowAction {
+        RuneWindowAction::None
+    }
+
+    fn on_enter(&mut self) -> RuneWindowAction {
+        RuneWindowAction::None
+    }
+
+    fn on_leave(&mut self) -> RuneWindowAction {
+        RuneWindowAction::None
+    }
 }
 
 struct DefaultHandler;

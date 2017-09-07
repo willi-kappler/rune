@@ -1,6 +1,6 @@
 use sdl2;
 use sdl2::event::{Event, WindowEvent};
-use error::{Result, ResultExt};
+use error::{Result};
 
 use window::{RuneWindow, RuneWindowInternal, RuneWindowAction};
 
@@ -10,7 +10,7 @@ struct RuneAction {
 }
 
 pub struct Rune {
-    sdl_context: sdl2::Sdl,
+    // sdl_context: sdl2::Sdl,
     video_subsystem: sdl2::VideoSubsystem,
     event_pump: sdl2::EventPump,
     windows: Vec<RuneWindowInternal>,
@@ -25,7 +25,7 @@ impl Rune {
 
         Ok(
             Rune {
-                sdl_context: sdl_context,
+                // sdl_context: sdl_context,
                 video_subsystem: video_subsystem,
                 event_pump: event_pump,
                 windows: Vec::new(),
@@ -111,6 +111,24 @@ fn process_window_events(window: &mut RuneWindowInternal, event: sdl2::event::Wi
     match event {
         WindowEvent::Close => {
             (window.rune_window.event_handler).on_close()
+        },
+        WindowEvent::Moved(x, y) => {
+            (window.rune_window.event_handler).on_move(x, y)
+        },
+        WindowEvent::Resized(w, h) => {
+            (window.rune_window.event_handler).on_resize(w, h)
+        },
+        WindowEvent::Minimized => {
+            (window.rune_window.event_handler).on_minimize()
+        },
+        WindowEvent::Maximized => {
+            (window.rune_window.event_handler).on_maximize()
+        },
+        WindowEvent::Enter => {
+            (window.rune_window.event_handler).on_enter()
+        },
+        WindowEvent::Leave => {
+            (window.rune_window.event_handler).on_leave()
         },
         _ => {
             // TODO: add more events...

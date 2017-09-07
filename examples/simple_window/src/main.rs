@@ -26,6 +26,18 @@ impl RuneWindowHandler for CustomWindow {
 
         RuneWindowAction::None
     }
+
+    fn on_move(&mut self, x: i32, y: i32) -> RuneWindowAction {
+        println!("Window moved to: {}, {}", x, y);
+
+        RuneWindowAction::None
+    }
+
+    fn on_resize(&mut self, w: i32, h: i32 ) -> RuneWindowAction {
+        println!("Window resized to: {}, {}", w, h);
+
+        RuneWindowAction::None
+    }
 }
 
 quick_main!(|| -> Result<()> {
