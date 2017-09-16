@@ -8,13 +8,64 @@ use error::{Result};
 use window::{RuneWindow, RuneWindowInternal};
 use canvas::{RuneCanvas};
 
-#[derive(Clone, Copy)]
-pub enum RuneAction {
-    ApplicationQuit,
-    WindowHide,
+pub trait RuneMessageHandler {
+    pub fn handle_message(&mut self, message: RuneMessage) {
+    }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
+pub struct DefaultMessageHandler {
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum RuneMessage {
+    ApplicationQuit,
+    WindowClose,
+    WindowMove(u32, u32),
+    WindowResize(u32, u32),
+    WindowMinimize,
+    WindowMaximize,
+    WindowEnter,
+    WindowLeave,
+    WindowUnknown,
+    MousePress(RuneMouseButton, u32, u32),
+    MouseRelease(RuneMouseButton, u32, u32),
+    MouseMove(RuneMouseButton, u32, u32),
+}
+
+impl From<sdl2::event::WindowEvent> for RuneMessage {
+    fn from(win_evt: sdl2::event::WindowEvent) -> RuneMessage {
+        match event {
+            WindowEvent::Close => {
+                RuneMessage::WindowClose
+            },
+            WindowEvent::Moved(x, y) => {
+                RuneMessage::WindowMove()
+            },
+            WindowEvent::Resized(w, h) => {
+                RuneMessage::WindowResize()
+            },
+            WindowEvent::Minimized => {
+                RuneMessage::WindowMinmize
+            },
+            WindowEvent::Maximized => {
+                RuneMessage::WindowMaximize
+            },
+            WindowEvent::Enter => {
+                RuneMessage::WindowEnter
+            },
+            WindowEvent::Leave => {
+                RuneMessage::WindowLeave
+            },
+            _ => {
+                // TODO: add more events...
+                RuneMessage::WindowUnknown
+            }
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
 pub enum RuneMouseButton {
     Left,
     Middle,
@@ -87,17 +138,7 @@ impl Rune {
         while !self.quit {
             for event in self.event_pump.poll_iter() {
                 for window in self.windows.iter_mut() {
-                    match process_event(window, &event) {
-                        Some(RuneAction::ApplicationQuit) => {
-                            self.quit = true
-                        },
-                        Some(RuneAction::WindowHide) => {
-                            window.canvas.sdl_canvas.window_mut().hide();
-                        },
-                        _ => {
-                            // Nothing else for now...
-                        }
-                    }
+                    process_event(window, &event)
                 }
             }
 
@@ -112,27 +153,21 @@ impl Rune {
     }
 }
 
-fn process_event(window: &mut RuneWindowInternal, event: &sdl2::event::Event) -> Option<RuneAction> {
+fn process_event(window: &mut RuneWindowInternal, event: &sdl2::event::Event) {
     match *event {
         Event::Window { timestamp: _, window_id: id, win_event: window_event } => {
             if window.id == id {
                 process_window_event(window, window_event)
-            } else {
-                None
             }
         },
         Event::MouseButtonDown { timestamp: _, window_id: id, which: _, mouse_btn: btn, x: x, y: y } => {
             if window.id == id {
-                process_mouse_press_event(window, RuneMouseButton::from(btn), x, y)
-            } else {
-                None
+                window.handle_message(RuneMessage::MousePress(RuneMouseButton::from(btn), x, y));
             }
         },
         Event::MouseButtonUp { timestamp: _, window_id: id, which: _, mouse_btn: btn, x: x, y: y } => {
             if window.id == id {
-                process_mouse_release_event(window, RuneMouseButton::from(btn), x, y)
-            } else {
-                None
+                window.handle_message(RuneMessage::MouseRelease(RuneMouseButton::from(btn), x, y));
             }
         }
         Event::MouseMotion { timestamp: _, window_id: id, which: _, mousestate: state, x: x, y: y, xrel: dx, yrel: dy } => {
@@ -146,58 +181,15 @@ fn process_event(window: &mut RuneWindowInternal, event: &sdl2::event::Event) ->
                 } else {
                     RuneMouseButton::Unknown
                 };
-                process_mouse_move_event(window, btn, x, y)
-            } else {
-                None
+                window.handle_message(RuneMessage::MouseMove(btn, x, y));
             }
         },
         _ => {
             // TODO: add more events...
-            None
         }
     }
 }
 
-fn process_window_event(window: &mut RuneWindowInternal, event: sdl2::event::WindowEvent)  -> Option<RuneAction> {
-    match event {
-        WindowEvent::Close => {
-            (window.rune_window.event_handler).on_close()
-        },
-        WindowEvent::Moved(x, y) => {
-            (window.rune_window.event_handler).on_move(x, y)
-        },
-        WindowEvent::Resized(w, h) => {
-            (window.rune_window.event_handler).on_resize(w, h)
-        },
-        WindowEvent::Minimized => {
-            (window.rune_window.event_handler).on_minimize()
-        },
-        WindowEvent::Maximized => {
-            (window.rune_window.event_handler).on_maximize()
-        },
-        WindowEvent::Enter => {
-            (window.rune_window.event_handler).on_enter()
-        },
-        WindowEvent::Leave => {
-            (window.rune_window.event_handler).on_leave()
-        },
-        _ => {
-            // TODO: add more events...
-            None
-        }
-    }
-}
-
-fn process_mouse_press_event(window: &mut RuneWindowInternal, mouse_button: RuneMouseButton, x: i32, y: i32) -> Option<RuneAction> {
-    // println!("rune.rs: process_mouse_press_event: {}, {}", x, y);
-    window.mouse_press(mouse_button, x as u32, y as u32)
-}
-
-fn process_mouse_release_event(window: &mut RuneWindowInternal, mouse_button: RuneMouseButton, x: i32, y: i32) -> Option<RuneAction> {
-    // println!("rune.rs: process_mouse_release_event: {}, {}", x, y);
-    window.mouse_release(mouse_button, x as u32, y as u32)
-}
-
-fn process_mouse_move_event(window: &mut RuneWindowInternal, mouse_button: RuneMouseButton, x: i32, y: i32) -> Option<RuneAction> {
-    window.mouse_move(mouse_button, x as u32, y as u32)
+fn process_window_event(window: &mut RuneWindowInternal, event: sdl2::event::WindowEvent) {
+    window.handle_message(RuneMessage::From(event))
 }

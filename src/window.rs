@@ -1,50 +1,15 @@
 use sdl2;
 
-use rune::{RuneAction, RuneMouseButton};
+use rune::{RuneMouseButton};
 use widget::RuneWidget;
 use canvas::RuneCanvas;
-
-pub trait RuneWindowHandler {
-    fn on_close(&mut self) -> Option<RuneAction> {
-        Some(RuneAction::WindowHide)
-    }
-
-    fn on_move(&mut self, _: i32, _: i32) -> Option<RuneAction> {
-        None
-    }
-
-    fn on_resize(&mut self, _: i32, _: i32) -> Option<RuneAction> {
-        None
-    }
-
-    fn on_minimize(&mut self) -> Option<RuneAction> {
-        None
-    }
-
-    fn on_maximize(&mut self) -> Option<RuneAction> {
-        None
-    }
-
-    fn on_enter(&mut self) -> Option<RuneAction> {
-        None
-    }
-
-    fn on_leave(&mut self) -> Option<RuneAction> {
-        None
-    }
-}
-
-struct DefaultHandler;
-
-impl RuneWindowHandler for DefaultHandler {
-
-}
+use message::{RuneMessageHandler, DefaultMessageHandler, RuneMessage};
 
 struct CloseWindowHandler;
 
-impl RuneWindowHandler for CloseWindowHandler {
-    fn on_close(&mut self) -> Option<RuneAction> {
-        Some(RuneAction::ApplicationQuit)
+impl RuneMessageHandler for CloseWindowHandler {
+    fn handle_message(&mut self, message: RuneMessage) {
+        // TODO
     }
 }
 
@@ -53,7 +18,7 @@ pub struct RuneWindow {
     pub width: u32,
     pub height: u32,
     pub widgets: Vec<Box<RuneWidget>>,
-    pub event_handler: Box<RuneWindowHandler>,
+    pub event_handler: Box<RuneMessageHandler>,
 }
 
 impl RuneWindow {
@@ -66,7 +31,7 @@ pub struct RuneWindowBuilder {
     title: String,
     width: u32,
     height: u32,
-    event_handler: Box<RuneWindowHandler>,
+    event_handler: Box<RuneMessageHandler>,
 }
 
 impl RuneWindowBuilder {
@@ -75,7 +40,7 @@ impl RuneWindowBuilder {
             title: title.to_string(),
             width,
             height,
-            event_handler: Box::new(DefaultHandler {}),
+            event_handler: Box::new(DefaultMessageHandler {}),
         }
     }
 
@@ -86,7 +51,7 @@ impl RuneWindowBuilder {
         }
     }
 
-    pub fn set_event_handler<T>(self, event_handler: T) -> RuneWindowBuilder where T: 'static + RuneWindowHandler {
+    pub fn set_event_handler<T>(self, event_handler: T) -> RuneWindowBuilder where T: 'static + RuneMessageHandler {
         RuneWindowBuilder {
             event_handler: Box::new(event_handler),
             .. self
@@ -117,58 +82,7 @@ impl RuneWindowInternal {
         }
     }
 
-    pub fn mouse_press(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
-        let mut result = None;
-
-        for widget in self.rune_window.widgets.iter_mut() {
-            if widget.contains_point(x, y) {
-                let wx = widget.x();
-                let wy = widget.y();
-
-                result = widget.on_mouse_press(mouse_button, x - wx, y - wy);
-                break;
-            }
-        }
-
-        result
+    fn handle_message(&mut self, message: RuneMessage) {
+        // TODO
     }
-
-    pub fn mouse_release(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
-        let mut result = None;
-
-        for widget in self.rune_window.widgets.iter_mut() {
-            if widget.contains_point(x, y) {
-                let wx = widget.x();
-                let wy = widget.y();
-
-                result = widget.on_mouse_release(mouse_button, x - wx, y - wy);
-                break;
-            }
-        }
-
-        result
-    }
-
-    pub fn mouse_move(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
-        let mut result = None;
-
-        for widget in self.rune_window.widgets.iter_mut() {
-            if widget.contains_point(x, y) {
-                let wx = widget.x();
-                let wy = widget.y();
-
-                if !widget.mouse_inside() {
-                    widget.on_mouse_enter();
-                }
-                result = widget.on_mouse_move(mouse_button, x - wx, y - wy);
-            } else {
-                if widget.mouse_inside() {
-                    widget.on_mouse_leave()
-                }
-            }
-        }
-
-        result
-    }
-
 }

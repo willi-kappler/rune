@@ -1,38 +1,16 @@
 
 use rune::{RuneAction, RuneMouseButton};
 use canvas::RuneCanvas;
+use message::{RuneMessage};
 
 pub trait RuneWidget {
     fn draw(&mut self, canvas: &mut RuneCanvas) {
         // Do nothing in the default implementation
     }
 
-    fn contains_point(&mut self, x: u32, y: u32) -> bool;
-
-    fn x(&mut self) -> u32;
-
-    fn y(&mut self) -> u32;
-
-    fn mouse_inside(&mut self) -> bool;
-
-    fn on_mouse_press(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
-        None
+    fn handle_message(&mut self, message: RuneMessage) {
+        // Do nothing in the default implementation
     }
-
-    fn on_mouse_release(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
-        None
-    }
-
-    fn on_mouse_move(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
-        None
-    }
-
-    fn on_mouse_enter(&mut self) {
-    }
-
-    fn on_mouse_leave(&mut self) {
-    }
-
 }
 
 #[derive(Clone)]
@@ -50,11 +28,7 @@ impl BaseWidget {
         (x >= self.x) && (x <= (self.x + self.width)) && (y >= self.y) && (y <= self.y + (self.height))
     }
 
-    pub fn mouse_enter(&mut self) {
-        self.mouse_inside = true;
-    }
-
-    pub fn mouse_leave(&mut self) {
-        self.mouse_inside = false;
+    fn handle_message(&mut self, message: RuneMessage) {
+        // TODO
     }
 }
