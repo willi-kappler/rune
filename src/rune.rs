@@ -7,82 +7,8 @@ use error::{Result};
 
 use window::{RuneWindow, RuneWindowInternal};
 use canvas::{RuneCanvas};
-
-pub trait RuneMessageHandler {
-    pub fn handle_message(&mut self, message: RuneMessage) {
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct DefaultMessageHandler {
-}
-
-#[derive(Clone, Copy, Debug)]
-pub enum RuneMessage {
-    ApplicationQuit,
-    WindowClose,
-    WindowMove(u32, u32),
-    WindowResize(u32, u32),
-    WindowMinimize,
-    WindowMaximize,
-    WindowEnter,
-    WindowLeave,
-    WindowUnknown,
-    MousePress(RuneMouseButton, u32, u32),
-    MouseRelease(RuneMouseButton, u32, u32),
-    MouseMove(RuneMouseButton, u32, u32),
-}
-
-impl From<sdl2::event::WindowEvent> for RuneMessage {
-    fn from(win_evt: sdl2::event::WindowEvent) -> RuneMessage {
-        match event {
-            WindowEvent::Close => {
-                RuneMessage::WindowClose
-            },
-            WindowEvent::Moved(x, y) => {
-                RuneMessage::WindowMove()
-            },
-            WindowEvent::Resized(w, h) => {
-                RuneMessage::WindowResize()
-            },
-            WindowEvent::Minimized => {
-                RuneMessage::WindowMinmize
-            },
-            WindowEvent::Maximized => {
-                RuneMessage::WindowMaximize
-            },
-            WindowEvent::Enter => {
-                RuneMessage::WindowEnter
-            },
-            WindowEvent::Leave => {
-                RuneMessage::WindowLeave
-            },
-            _ => {
-                // TODO: add more events...
-                RuneMessage::WindowUnknown
-            }
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
-pub enum RuneMouseButton {
-    Left,
-    Middle,
-    Right,
-    Unknown
-}
-
-impl From<MouseButton> for RuneMouseButton {
-    fn from(btn: MouseButton) -> RuneMouseButton {
-        match btn {
-            MouseButton::Left => RuneMouseButton::Left,
-            MouseButton::Middle => RuneMouseButton::Middle,
-            MouseButton::Right => RuneMouseButton::Right,
-            _ => RuneMouseButton::Unknown
-        }
-    }
-}
+use mouse::{RuneMouseButton};
+use message::{RuneMessageBox};
 
 pub struct Rune {
     // sdl_context: sdl2::Sdl,
@@ -90,6 +16,7 @@ pub struct Rune {
     event_pump: sdl2::EventPump,
     windows: Vec<RuneWindowInternal>,
     quit: bool,
+    message_box: RuneMessageBox,
 }
 
 impl Rune {
@@ -105,6 +32,7 @@ impl Rune {
                 event_pump: event_pump,
                 windows: Vec::new(),
                 quit: false,
+                message_box: RuneMessageBox::new(),
             }
         )
     }
@@ -122,6 +50,8 @@ impl Rune {
         sdl_canvas.clear();
         sdl_canvas.present();
 
+        rune_window.parent = self.message_box.clone();
+
         self.windows.push(RuneWindowInternal{
             rune_window,
             id,
@@ -138,36 +68,40 @@ impl Rune {
         while !self.quit {
             for event in self.event_pump.poll_iter() {
                 for window in self.windows.iter_mut() {
-                    process_event(window, &event)
+                    let result = process_event(self.message_box, window, &event);
                 }
             }
 
-            for window in self.windows.iter_mut() {
-                window.canvas.sdl_canvas.set_draw_color(pixels::Color::RGB(0, 0, 0));
-                window.canvas.sdl_canvas.clear();
-                window.draw();
-                window.canvas.sdl_canvas.present();
+            // TODO: process all messages for main application
 
-            }
+            // TODO: process all messages for windows, widgets, etc.
+
+            // for window in self.windows.iter_mut() {
+            //     window.canvas.sdl_canvas.set_draw_color(pixels::Color::RGB(0, 0, 0));
+            //     window.canvas.sdl_canvas.clear();
+            //     window.draw();
+            //     window.canvas.sdl_canvas.present();
+            // }
+
         }
     }
 }
 
-fn process_event(window: &mut RuneWindowInternal, event: &sdl2::event::Event) {
+fn process_event(sender: &RuneMessageBox, window: &mut RuneWindowInternal, event: &sdl2::event::Event) -> Result<()> {
     match *event {
         Event::Window { timestamp: _, window_id: id, win_event: window_event } => {
             if window.id == id {
-                process_window_event(window, window_event)
+                process_window_event(sender, window, window_event)
             }
         },
         Event::MouseButtonDown { timestamp: _, window_id: id, which: _, mouse_btn: btn, x: x, y: y } => {
             if window.id == id {
-                window.handle_message(RuneMessage::MousePress(RuneMouseButton::from(btn), x, y));
+                window.send_message(sender, RuneMessage::MousePress(RuneMouseButton::from(btn), x, y))
             }
         },
         Event::MouseButtonUp { timestamp: _, window_id: id, which: _, mouse_btn: btn, x: x, y: y } => {
             if window.id == id {
-                window.handle_message(RuneMessage::MouseRelease(RuneMouseButton::from(btn), x, y));
+                window.send_message(sender, RuneMessage::MouseRelease(RuneMouseButton::from(btn), x, y))
             }
         }
         Event::MouseMotion { timestamp: _, window_id: id, which: _, mousestate: state, x: x, y: y, xrel: dx, yrel: dy } => {
@@ -181,15 +115,16 @@ fn process_event(window: &mut RuneWindowInternal, event: &sdl2::event::Event) {
                 } else {
                     RuneMouseButton::Unknown
                 };
-                window.handle_message(RuneMessage::MouseMove(btn, x, y));
+                window.send_message(sender, RuneMessage::MouseMove(btn, x, y))
             }
         },
         _ => {
             // TODO: add more events...
+            Ok(())
         }
     }
 }
 
-fn process_window_event(window: &mut RuneWindowInternal, event: sdl2::event::WindowEvent) {
-    window.handle_message(RuneMessage::From(event))
+fn process_window_event(sender: &RuneMessageBox,  window: &mut RuneWindowInternal, event: sdl2::event::WindowEvent) -> Result<()> {
+    window.send_message(sender, RuneMessage::From(event))
 }
