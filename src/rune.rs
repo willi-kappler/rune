@@ -8,7 +8,7 @@ use error::{Result};
 use window::{RuneWindow, RuneWindowInternal};
 use canvas::{RuneCanvas};
 use mouse::{RuneMouseButton};
-use message::{RuneMessageBox};
+use message::{RuneMessageBox, RuneMessage};
 
 pub struct Rune {
     // sdl_context: sdl2::Sdl,
@@ -68,14 +68,14 @@ impl Rune {
         while !self.quit {
             for event in self.event_pump.poll_iter() {
                 for window in self.windows.iter_mut() {
-                    process_event(self.message_box, window, &event)?;
+                    process_event(&self.message_box, window, &event)?;
                 }
             }
 
             loop {
                 if let Some((sender, message)) = self.message_box.pop_message()? {
                     match message {
-                        RuneMessage::ApplicationQuit {
+                        RuneMessage::ApplicationQuit => {
                             self.quit = true;
                             break;
                         },
@@ -102,6 +102,8 @@ impl Rune {
             // }
 
         }
+
+        Ok(())
     }
 }
 
@@ -110,16 +112,22 @@ fn process_event(sender: &RuneMessageBox, window: &mut RuneWindowInternal, event
         Event::Window { timestamp: _, window_id: id, win_event: window_event } => {
             if window.id == id {
                 process_window_event(sender, window, window_event)
+            } else {
+                Ok(())
             }
         },
         Event::MouseButtonDown { timestamp: _, window_id: id, which: _, mouse_btn: btn, x: x, y: y } => {
             if window.id == id {
-                window.send_message(sender, RuneMessage::MousePress(RuneMouseButton::from(btn), x, y))
+                window.send_message(sender, &RuneMessage::MousePress(RuneMouseButton::from(btn), x as u32, y as u32))
+            } else {
+                Ok(())
             }
         },
         Event::MouseButtonUp { timestamp: _, window_id: id, which: _, mouse_btn: btn, x: x, y: y } => {
             if window.id == id {
-                window.send_message(sender, RuneMessage::MouseRelease(RuneMouseButton::from(btn), x, y))
+                window.send_message(sender, &RuneMessage::MouseRelease(RuneMouseButton::from(btn), x as u32, y as u32))
+            } else {
+                Ok(())
             }
         }
         Event::MouseMotion { timestamp: _, window_id: id, which: _, mousestate: state, x: x, y: y, xrel: dx, yrel: dy } => {
@@ -133,7 +141,9 @@ fn process_event(sender: &RuneMessageBox, window: &mut RuneWindowInternal, event
                 } else {
                     RuneMouseButton::Unknown
                 };
-                window.send_message(sender, RuneMessage::MouseMove(btn, x, y))
+                window.send_message(sender, &RuneMessage::MouseMove(btn, x as u32, y as u32))
+            } else {
+                Ok(())
             }
         },
         _ => {

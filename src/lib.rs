@@ -8,7 +8,8 @@ mod canvas;
 mod widget;
 mod push_button;
 mod message;
+mod mouse;
 
 pub use rune::{Rune};
-pub use window::{RuneWindowBuilder, RuneWindowHandler};
-pub use push_button::{PushButtonBuilder, PushButtonHandler};
+pub use window::{RuneWindowBuilder};
+pub use push_button::{PushButtonBuilder};

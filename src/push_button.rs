@@ -1,9 +1,10 @@
 use sdl2::pixels;
 use sdl2::rect::Rect;
 
-use rune::{RuneMouseButton, RuneMessageHandler, DefaultMessageHandler, RuneMessage};
+use message::{RuneMessageHandler, RuneMessageBox, RuneMessage, DefaultMessageHandler};
 use widget::{RuneWidget, BaseWidget};
 use canvas::RuneCanvas;
+use error::{Result};
 
 pub struct PushButton {
     base_widget: BaseWidget,
@@ -20,8 +21,14 @@ impl RuneWidget for PushButton {
              self.base_widget.width, self.base_widget.height));
     }
 
-    fn handle_message(&mut self, message: RuneMessage) {
+    fn send_message(&mut self, sender: &RuneMessageBox, message: &RuneMessage) -> Result<()> {
+        self.message_box.send_message(sender, message)?;
+        self.base_widget.send_message(sender, message)?
+    }
 
+    fn process_messages(&mut self) -> Result<()> {
+        (self.event_handler).process_messages()?;
+        self.base_widget.process_messages()?
     }
 }
 
@@ -64,6 +71,8 @@ impl PushButtonBuilder {
                 width: self.width,
                 height: self.height,
                 mouse_inside: false,
+                message_box: RuneMessageBox::new(),
+                parent: RuneMessageBox::new(),
             },
             text: self.text,
             pressed: false,

@@ -1,18 +1,26 @@
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 
+use sdl2;
 use sdl2::event::WindowEvent;
 
 use error::{Result};
+use mouse::{RuneMouseButton};
 
 pub trait RuneMessageHandler {
-    pub fn process_messages(&mut self) -> Result<()> {
+    fn process_messages(&mut self) -> Result<()> {
         Ok(())
     }
 }
 
 #[derive(Clone, Copy, Debug)]
 pub struct DefaultMessageHandler {
+}
+
+impl RuneMessageHandler for DefaultMessageHandler {
+    fn process_messages(&mut self) -> Result<()> {
+        Ok(())
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -29,22 +37,23 @@ pub enum RuneMessage {
     MousePress(RuneMouseButton, u32, u32),
     MouseRelease(RuneMouseButton, u32, u32),
     MouseMove(RuneMouseButton, u32, u32),
+    ButtonClick,
 }
 
 impl From<sdl2::event::WindowEvent> for RuneMessage {
     fn from(win_evt: sdl2::event::WindowEvent) -> RuneMessage {
-        match event {
+        match win_evt {
             WindowEvent::Close => {
                 RuneMessage::WindowClose
             },
             WindowEvent::Moved(x, y) => {
-                RuneMessage::WindowMove()
+                RuneMessage::WindowMove(x as u32, y as u32)
             },
             WindowEvent::Resized(w, h) => {
-                RuneMessage::WindowResize()
+                RuneMessage::WindowResize(w as u32, h as u32)
             },
             WindowEvent::Minimized => {
-                RuneMessage::WindowMinmize
+                RuneMessage::WindowMinimize
             },
             WindowEvent::Maximized => {
                 RuneMessage::WindowMaximize
@@ -63,22 +72,25 @@ impl From<sdl2::event::WindowEvent> for RuneMessage {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
-struct RuneMessageBox {
+#[derive(Clone, Debug)]
+pub struct RuneMessageBox {
     message_box: Arc<Mutex<VecDeque<(Box<RuneMessageBox>, RuneMessage)>>>,
 }
 
 impl RuneMessageBox {
-    fn new() -> RuneMessageBox {
-        message_box: Arc::new(Mutex::new(VecDeque::new())),
+    pub fn new() -> RuneMessageBox {
+        RuneMessageBox {
+            message_box: Arc::new(Mutex::new(VecDeque::new())),
+        }
     }
 
-    fn send_message(&mut self, sender: &RuneMessageBox, message: &RuneMessage) -> Result<()> {
+    pub fn send_message(&mut self, sender: &RuneMessageBox, message: &RuneMessage) -> Result<()> {
         let mut message_box = self.message_box.lock()?;
         message_box.push_front((Box::new(sender.clone()), message.clone()));
+        Ok(())
     }
 
-    fn pop_message(&mut self) -> Result<Option<(RuneMessageBox, RuneMessage)>> {
+    pub fn pop_message(&mut self) -> Result<Option<(RuneMessageBox, RuneMessage)>> {
         let mut message_box = self.message_box.lock()?;
         Ok(message_box.pop_back().map(|(sender, message)| (*sender, message)))
     }

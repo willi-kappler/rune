@@ -1,7 +1,6 @@
-
-use rune::{RuneAction, RuneMouseButton};
+use mouse::{RuneMouseButton};
 use canvas::RuneCanvas;
-use message::{RuneMessageBox};
+use message::{RuneMessageBox, RuneMessage};
 use error::{Result};
 
 pub trait RuneWidget {
@@ -10,17 +9,19 @@ pub trait RuneWidget {
     }
 
     fn send_message(&mut self, sender: &RuneMessageBox, message: &RuneMessage) -> Result<()> {
-        // Do nothing in the default implementation
         Ok(())
     }
 
     fn process_messages(&mut self) -> Result<()> {
-        // Do nothing in the default implementation
         Ok(())
+    }
+
+    fn set_parent(&mut self, parent: RuneMessageBox) {
+
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct BaseWidget {
     pub id: u32,
     pub x: u32,
@@ -37,17 +38,17 @@ impl BaseWidget {
         (x >= self.x) && (x <= (self.x + self.width)) && (y >= self.y) && (y <= self.y + (self.height))
     }
 
-    fn process_messages(&mut self, message: RuneMessage) -> Result<()> {
+    pub fn process_messages(&mut self) -> Result<()> {
         // TODO
         Ok(())
     }
 
-    fn send_message(&mut self, sender: &RuneMessageBox, message: &RuneMessage) -> Result<()> {
+    pub fn send_message(&mut self, sender: &RuneMessageBox, message: &RuneMessage) -> Result<()> {
         // TODO
         Ok(())
     }
 
-    fn set_parent(&mut self, parent: RuneMessageBox) {
-        self.parent = parent.clone();
+    pub fn set_parent(&mut self, parent: RuneMessageBox) {
+        self.parent = parent;
     }
 }
