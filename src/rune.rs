@@ -62,19 +62,37 @@ impl Rune {
     }
 
 
-    pub fn run(&mut self) {
+    pub fn run(&mut self) -> Result<()> {
         self.quit = false;
 
         while !self.quit {
             for event in self.event_pump.poll_iter() {
                 for window in self.windows.iter_mut() {
-                    let result = process_event(self.message_box, window, &event);
+                    process_event(self.message_box, window, &event)?;
                 }
             }
 
-            // TODO: process all messages for main application
+            loop {
+                if let Some((sender, message)) = self.message_box.pop_message()? {
+                    match message {
+                        RuneMessage::ApplicationQuit {
+                            self.quit = true;
+                            break;
+                        },
+                        _ => {
+                            // TODO: handle more messages
+                        }
+                    }
+                } else {
+                    // message box is empty, no more messages to process -
+                    // so just leave the loop
+                    break
+                }
+            }
 
-            // TODO: process all messages for windows, widgets, etc.
+            for window in self.windows.iter_mut() {
+                window.process_messages()?;
+            }
 
             // for window in self.windows.iter_mut() {
             //     window.canvas.sdl_canvas.set_draw_color(pixels::Color::RGB(0, 0, 0));

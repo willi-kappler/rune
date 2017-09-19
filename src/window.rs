@@ -10,10 +10,21 @@ struct CloseWindowHandler;
 
 impl RuneMessageHandler for CloseWindowHandler {
     fn process_messages(&mut self) -> Result<()> {
-        self.parent.send_message(self.message_box, RuneMessage::ApplicationQuit)
+        loop {
+            if let Some(sender, message) = self.message_box.pop_message()? {
+                match message {
+                    RuneMessage::WindowClose => {
+                        self.parent.send_message(self.message_box, RuneMessage::ApplicationQuit)
+                    }
+                }
+            } else {
+                break;
+            }
+        }
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct RuneWindow {
     pub title: String,
     pub width: u32,
@@ -26,6 +37,7 @@ pub struct RuneWindow {
 
 impl RuneWindow {
     pub fn add_widget<T>(&mut self, widget: T) where T: 'static + RuneWidget {
+        widget.set_parent(self.message_box);
         self.widgets.push(Box::new(widget));
     }
 }
@@ -89,13 +101,15 @@ impl RuneWindowInternal {
 
     fn process_messages(&mut self) -> Result<()> {
         (self.rune_window.event_handler).process_messages()?
-        // TODO: iterate over all messages, self.rune_window.message_box.pop_front()
         for widget in self.rune_window.widgets.iter_mut() {
-            widget.send_message(self.rune_window.message_box, message)?
+            widget.process_messages()?;
         }
     }
 
     fn send_message(&mut self, sender: &RuneMessageBox, message: &RuneMessage) -> Result<()> {
-        self.rune_window.message_box.send_message(sender, message)
+        self.rune_window.message_box.send_message(sender, message)?
+        for widget in self.rune_window.widgets.iter_mut() {
+            widget.send_message(sender, message)?;
+        }
     }
 }
