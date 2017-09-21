@@ -154,5 +154,6 @@ fn process_event(sender: &RuneMessageBox, window: &mut RuneWindowInternal, event
 }
 
 fn process_window_event(sender: &RuneMessageBox,  window: &mut RuneWindowInternal, event: sdl2::event::WindowEvent) -> Result<()> {
-    window.send_message(sender, RuneMessage::From(event))
+    let event: RuneMessage = event.into();
+    window.send_message(sender, &event)
 }

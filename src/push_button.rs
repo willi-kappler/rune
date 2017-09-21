@@ -10,6 +10,8 @@ pub struct PushButton {
     base_widget: BaseWidget,
     text: String,
     pressed: bool,
+    message_box: RuneMessageBox,
+    parent: RuneMessageBox,
     event_handler: Box<RuneMessageHandler>,
 }
 
@@ -23,12 +25,12 @@ impl RuneWidget for PushButton {
 
     fn send_message(&mut self, sender: &RuneMessageBox, message: &RuneMessage) -> Result<()> {
         self.message_box.send_message(sender, message)?;
-        self.base_widget.send_message(sender, message)?
+        self.base_widget.send_message(sender, message)
     }
 
     fn process_messages(&mut self) -> Result<()> {
-        (self.event_handler).process_messages()?;
-        self.base_widget.process_messages()?
+        (self.event_handler).process_messages(&mut self.message_box, &mut self.parent)?;
+        self.base_widget.process_messages()
     }
 }
 
@@ -76,6 +78,8 @@ impl PushButtonBuilder {
             },
             text: self.text,
             pressed: false,
+            message_box: RuneMessageBox::new(),
+            parent: RuneMessageBox::new(),
             event_handler: self.event_handler,
         }
     }

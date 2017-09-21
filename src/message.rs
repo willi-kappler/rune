@@ -4,11 +4,11 @@ use std::sync::{Arc, Mutex};
 use sdl2;
 use sdl2::event::WindowEvent;
 
-use error::{Result};
+use error::{Result, ResultExt};
 use mouse::{RuneMouseButton};
 
 pub trait RuneMessageHandler {
-    fn process_messages(&mut self) -> Result<()> {
+    fn process_messages(&mut self, self_mb: &mut RuneMessageBox, parent_mb: &mut RuneMessageBox) -> Result<()> {
         Ok(())
     }
 }
@@ -18,7 +18,7 @@ pub struct DefaultMessageHandler {
 }
 
 impl RuneMessageHandler for DefaultMessageHandler {
-    fn process_messages(&mut self) -> Result<()> {
+    fn process_messages(&mut self, self_mb: &mut RuneMessageBox, parent_mb: &mut RuneMessageBox) -> Result<()> {
         Ok(())
     }
 }
@@ -85,13 +85,13 @@ impl RuneMessageBox {
     }
 
     pub fn send_message(&mut self, sender: &RuneMessageBox, message: &RuneMessage) -> Result<()> {
-        let mut message_box = self.message_box.lock()?;
+        let mut message_box = self.message_box.lock().chain_err(|| "Unable to lock mutex")?;
         message_box.push_front((Box::new(sender.clone()), message.clone()));
         Ok(())
     }
 
     pub fn pop_message(&mut self) -> Result<Option<(RuneMessageBox, RuneMessage)>> {
-        let mut message_box = self.message_box.lock()?;
+        let mut message_box = self.message_box.lock().chain_err(|| "Unable to lock mutex")?;
         Ok(message_box.pop_back().map(|(sender, message)| (*sender, message)))
     }
 }

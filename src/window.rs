@@ -9,12 +9,12 @@ use error::{Result};
 struct CloseWindowHandler;
 
 impl RuneMessageHandler for CloseWindowHandler {
-    fn process_messages(&mut self) -> Result<()> {
+    fn process_messages(&mut self, window_mb: &mut RuneMessageBox, parent_mb: &mut RuneMessageBox) -> Result<()> {
         loop {
-            if let Some(sender, message) = self.message_box.pop_message()? {
+            if let Some((sender, message)) = window_mb.pop_message()? {
                 match message {
                     RuneMessage::WindowClose => {
-                        self.parent.send_message(self.message_box, RuneMessage::ApplicationQuit)?;
+                        parent_mb.send_message(window_mb, &RuneMessage::ApplicationQuit)?;
                         break;
                     },
                     _ => {
@@ -104,7 +104,7 @@ impl RuneWindowInternal {
     }
 
     pub fn process_messages(&mut self) -> Result<()> {
-        (self.rune_window.event_handler).process_messages()?;
+        (self.rune_window.event_handler).process_messages(&mut self.rune_window.message_box, &mut self.rune_window.parent)?;
         for widget in self.rune_window.widgets.iter_mut() {
             widget.process_messages()?;
         }
