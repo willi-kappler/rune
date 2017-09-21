@@ -40,7 +40,7 @@ pub struct RuneWindow {
 }
 
 impl RuneWindow {
-    pub fn add_widget<T>(&mut self, widget: T) where T: 'static + RuneWidget {
+    pub fn add_widget<T>(&mut self, mut widget: T) where T: 'static + RuneWidget {
         widget.set_parent(self.message_box.clone());
         self.widgets.push(Box::new(widget));
     }

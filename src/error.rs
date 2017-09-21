@@ -5,4 +5,8 @@ error_chain! {
         WindowError(sdl2::video::WindowBuildError);
         SDLError(sdl2::IntegerOrSdlError);
     }
+
+    errors {
+        MutexError
+    }
 }

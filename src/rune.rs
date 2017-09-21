@@ -37,7 +37,7 @@ impl Rune {
         )
     }
 
-    pub fn add_window(&mut self, rune_window: RuneWindow) -> Result<()> {
+    pub fn add_window(&mut self, mut rune_window: RuneWindow) -> Result<()> {
         let sdl_window = self.video_subsystem
             .window(&rune_window.title, rune_window.width, rune_window.height)
             .resizable()
