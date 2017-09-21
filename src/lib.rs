@@ -13,3 +13,5 @@ mod mouse;
 pub use rune::{Rune};
 pub use window::{RuneWindowBuilder};
 pub use push_button::{PushButtonBuilder};
+pub use message::{RuneMessageHandler, RuneMessageBox, RuneMessage};
+pub use error::Result;

@@ -2,41 +2,41 @@
 
 extern crate rune;
 
-use rune::{Rune, RuneWindowBuilder, RuneWindowHandler, RuneAction};
-
-error_chain!{
-    links {
-        RuneError(rune::error::Error, rune::error::ErrorKind);
-    }
-}
+use rune::{Rune, RuneWindowBuilder, RuneMessageHandler, RuneMessageBox, RuneMessage, Result};
 
 struct CustomWindow {
     counter: u32,
 }
 
-impl RuneWindowHandler for CustomWindow {
-    fn on_close(&mut self) -> Option<RuneAction> {
-        self.counter += 1;
+impl RuneMessageHandler for CustomWindow {
+    fn process_messages(&mut self, window_mb: &mut RuneMessageBox, parent_mb: &mut RuneMessageBox) -> Result<()> {
+        loop {
+            if let Some((sender, message)) = window_mb.pop_message()? {
+                match message {
+                    RuneMessage::WindowClose(_) => {
+                        self.counter += 1;
 
-        if self.counter == 1 {
-            println!("User clicked the close button 1 time");
-        } else {
-            println!("User clicked the close button {} times", self.counter);
+                        if self.counter == 1 {
+                            println!("User clicked the close button 1 time");
+                        } else {
+                            println!("User clicked the close button {} times", self.counter);
+                        }
+                    },
+                    RuneMessage::WindowMove(x, y) => {
+                        println!("Window moved to: {}, {}", x, y);
+                    },
+                    RuneMessage::WindowResize(w, h) => {
+                        println!("Window resized to: {}, {}", w, h);
+                    },
+                    _ => {
+
+                    }
+                }
+            } else {
+                break;
+            }
         }
-
-        None
-    }
-
-    fn on_move(&mut self, x: i32, y: i32) -> Option<RuneAction> {
-        println!("Window moved to: {}, {}", x, y);
-
-        None
-    }
-
-    fn on_resize(&mut self, w: i32, h: i32 ) -> Option<RuneAction> {
-        println!("Window resized to: {}, {}", w, h);
-
-        None
+        Ok(())
     }
 }
 

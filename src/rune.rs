@@ -54,7 +54,7 @@ impl Rune {
 
         self.windows.push(RuneWindowInternal{
             rune_window,
-            id,
+            id: id,
             canvas: RuneCanvas{ sdl_canvas },
         });
 
@@ -77,8 +77,15 @@ impl Rune {
                     match message {
                         RuneMessage::ApplicationQuit => {
                             self.quit = true;
-                            break;
                         },
+                        RuneMessage::WindowClose(id) => {
+                            for window in self.windows.iter_mut() {
+                                if window.id == id {
+                                    window.canvas.sdl_canvas.window_mut().hide();
+                                    break;
+                                }
+                            }
+                        }
                         _ => {
                             // TODO: handle more messages
                         }
@@ -154,6 +161,33 @@ fn process_event(sender: &RuneMessageBox, window: &mut RuneWindowInternal, event
 }
 
 fn process_window_event(sender: &RuneMessageBox,  window: &mut RuneWindowInternal, event: sdl2::event::WindowEvent) -> Result<()> {
-    let event: RuneMessage = event.into();
+    let event: RuneMessage = match event {
+        WindowEvent::Close => {
+            RuneMessage::WindowClose(window.id)
+        },
+        WindowEvent::Moved(x, y) => {
+            RuneMessage::WindowMove(x as u32, y as u32)
+        },
+        WindowEvent::Resized(w, h) => {
+            RuneMessage::WindowResize(w as u32, h as u32)
+        },
+        WindowEvent::Minimized => {
+            RuneMessage::WindowMinimize
+        },
+        WindowEvent::Maximized => {
+            RuneMessage::WindowMaximize
+        },
+        WindowEvent::Enter => {
+            RuneMessage::WindowEnter
+        },
+        WindowEvent::Leave => {
+            RuneMessage::WindowLeave
+        },
+        _ => {
+            // TODO: add more events...
+            RuneMessage::WindowUnknown
+        }
+    };
+
     window.send_message(sender, &event)
 }

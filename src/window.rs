@@ -13,9 +13,30 @@ impl RuneMessageHandler for CloseWindowHandler {
         loop {
             if let Some((sender, message)) = window_mb.pop_message()? {
                 match message {
-                    RuneMessage::WindowClose => {
+                    RuneMessage::WindowClose(_) => {
                         parent_mb.send_message(window_mb, &RuneMessage::ApplicationQuit)?;
-                        break;
+                    },
+                    _ => {
+                        // TODO: Nothing more for now
+                    }
+                }
+            } else {
+                break;
+            }
+        }
+        Ok(())
+    }
+}
+
+struct DefaultWindowHandler;
+
+impl RuneMessageHandler for DefaultWindowHandler {
+    fn process_messages(&mut self, window_mb: &mut RuneMessageBox, parent_mb: &mut RuneMessageBox) -> Result<()> {
+        loop {
+            if let Some((sender, message)) = window_mb.pop_message()? {
+                match message {
+                    RuneMessage::WindowClose(id) => {
+                        parent_mb.send_message(window_mb, &RuneMessage::WindowClose(id));
                     },
                     _ => {
                         // TODO: Nothing more for now
@@ -59,7 +80,7 @@ impl RuneWindowBuilder {
             title: title.to_string(),
             width,
             height,
-            event_handler: Box::new(DefaultMessageHandler {}),
+            event_handler: Box::new(DefaultWindowHandler {}),
         }
     }
 

@@ -1,9 +1,6 @@
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 
-use sdl2;
-use sdl2::event::WindowEvent;
-
 use error::{Result, ResultExt, ErrorKind};
 use mouse::{RuneMouseButton};
 
@@ -26,7 +23,7 @@ impl RuneMessageHandler for DefaultMessageHandler {
 #[derive(Clone, Copy, Debug)]
 pub enum RuneMessage {
     ApplicationQuit,
-    WindowClose,
+    WindowClose(u32),
     WindowMove(u32, u32),
     WindowResize(u32, u32),
     WindowMinimize,
@@ -38,38 +35,6 @@ pub enum RuneMessage {
     MouseRelease(RuneMouseButton, u32, u32),
     MouseMove(RuneMouseButton, u32, u32),
     ButtonClick,
-}
-
-impl From<sdl2::event::WindowEvent> for RuneMessage {
-    fn from(win_evt: sdl2::event::WindowEvent) -> RuneMessage {
-        match win_evt {
-            WindowEvent::Close => {
-                RuneMessage::WindowClose
-            },
-            WindowEvent::Moved(x, y) => {
-                RuneMessage::WindowMove(x as u32, y as u32)
-            },
-            WindowEvent::Resized(w, h) => {
-                RuneMessage::WindowResize(w as u32, h as u32)
-            },
-            WindowEvent::Minimized => {
-                RuneMessage::WindowMinimize
-            },
-            WindowEvent::Maximized => {
-                RuneMessage::WindowMaximize
-            },
-            WindowEvent::Enter => {
-                RuneMessage::WindowEnter
-            },
-            WindowEvent::Leave => {
-                RuneMessage::WindowLeave
-            },
-            _ => {
-                // TODO: add more events...
-                RuneMessage::WindowUnknown
-            }
-        }
-    }
 }
 
 #[derive(Clone, Debug)]
