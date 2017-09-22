@@ -2,39 +2,57 @@
 
 extern crate rune;
 
-use rune::{Rune, RuneWindowBuilder, PushButtonBuilder, PushMessageHandler};
-
-error_chain!{
-    links {
-        RuneError(rune::error::Error, rune::error::ErrorKind);
-    }
-}
+use rune::{Rune, RuneWindowBuilder, PushButtonBuilder, RuneMessageHandler, RuneMessageBox, RuneMessage, Result};
 
 struct Button1 {
     counter: u32,
 }
 
-impl PushButtonHandler for Button1 {
-    fn on_click(&mut self) -> Option<RuneAction> {
-        self.counter += 1;
+impl RuneMessageHandler for Button1 {
+    fn process_messages(&mut self, button_mb: &mut RuneMessageBox, parent: &mut RuneMessageBox) -> Result<()> {
+        loop {
+            if let Some((_, message)) = button_mb.pop_message()? {
+                match message {
+                    RuneMessage::ButtonClick => {
+                        self.counter += 1;
 
-        if self.counter == 1 {
-            println!("Button pressed 1 time");
-        } else {
-            println!("Button pressed {} times", self.counter);
+                        if self.counter == 1 {
+                            println!("Button pressed 1 time");
+                        } else {
+                            println!("Button pressed {} times", self.counter);
+                        }
+                    },
+                    _ => {
+
+                    }
+                }
+            } else {
+                break;
+            }
         }
-
-        None
+        Ok(())
     }
 }
 
 struct Button2;
 
-impl PushButtonHandler for Button2 {
-    fn on_click(&mut self) -> Option<RuneAction> {
-        println!("Bye!");
+impl RuneMessageHandler for Button2 {
+    fn process_messages(&mut self, button_mb: &mut RuneMessageBox, parent: &mut RuneMessageBox) -> Result<()> {
+        loop {
+            if let Some((_, message)) = button_mb.pop_message()? {
+                match message {
+                    RuneMessage::ButtonClick => {
+                        parent.send_message(button_mb, RuneMessage::ApplicationQuit)?
+                    },
+                    _ => {
 
-        Some(RuneAction::ApplicationQuit)
+                    }
+                }
+            } else {
+                break;
+            }
+        }
+        Ok(())
     }
 }
 
@@ -51,7 +69,5 @@ quick_main!(|| -> Result<()> {
 
     app.add_window(main_window)?;
 
-    app.run();
-
-    Ok(())
+    app.run()
 });
