@@ -1,7 +1,5 @@
 use sdl2;
 use sdl2::event::{Event, WindowEvent};
-use sdl2::pixels;
-use sdl2::mouse::MouseButton;
 
 use error::{Result};
 
@@ -45,10 +43,10 @@ impl Rune {
 
         let id = sdl_window.id();
 
-        let mut sdl_canvas = sdl_window.into_canvas().build()?;
-        sdl_canvas.set_draw_color(pixels::Color::RGB(0, 0, 0));
-        sdl_canvas.clear();
-        sdl_canvas.present();
+        let sdl_canvas = sdl_window.into_canvas().build()?;
+        //sdl_canvas.set_draw_color(pixels::Color::RGB(0, 0, 0));
+        //sdl_canvas.clear();
+        //sdl_canvas.present();
 
         rune_window.parent = self.message_box.clone();
 
@@ -123,21 +121,21 @@ fn process_event(sender: &RuneMessageBox, window: &mut RuneWindowInternal, event
                 Ok(())
             }
         },
-        Event::MouseButtonDown { timestamp: _, window_id: id, which: _, mouse_btn: btn, x: x, y: y } => {
+        Event::MouseButtonDown { timestamp: _, window_id: id, which: _, mouse_btn: btn, x, y } => {
             if window.id == id {
-                window.send_message(sender, &RuneMessage::MousePress(RuneMouseButton::from(btn), x as u32, y as u32))
+                window.send_message(sender, RuneMessage::MousePress(RuneMouseButton::from(btn), x as u32, y as u32))
             } else {
                 Ok(())
             }
         },
-        Event::MouseButtonUp { timestamp: _, window_id: id, which: _, mouse_btn: btn, x: x, y: y } => {
+        Event::MouseButtonUp { timestamp: _, window_id: id, which: _, mouse_btn: btn, x, y } => {
             if window.id == id {
-                window.send_message(sender, &RuneMessage::MouseRelease(RuneMouseButton::from(btn), x as u32, y as u32))
+                window.send_message(sender, RuneMessage::MouseRelease(RuneMouseButton::from(btn), x as u32, y as u32))
             } else {
                 Ok(())
             }
         }
-        Event::MouseMotion { timestamp: _, window_id: id, which: _, mousestate: state, x: x, y: y, xrel: dx, yrel: dy } => {
+        Event::MouseMotion { timestamp: _, window_id: id, which: _, mousestate: state, x, y, xrel: _, yrel: _ } => {
             if window.id == id {
                 let btn = if state.left() {
                     RuneMouseButton::Left
@@ -148,7 +146,7 @@ fn process_event(sender: &RuneMessageBox, window: &mut RuneWindowInternal, event
                 } else {
                     RuneMouseButton::Unknown
                 };
-                window.send_message(sender, &RuneMessage::MouseMove(btn, x as u32, y as u32))
+                window.send_message(sender, RuneMessage::MouseMove(btn, x as u32, y as u32))
             } else {
                 Ok(())
             }
@@ -161,7 +159,7 @@ fn process_event(sender: &RuneMessageBox, window: &mut RuneWindowInternal, event
 }
 
 fn process_window_event(sender: &RuneMessageBox,  window: &mut RuneWindowInternal, event: sdl2::event::WindowEvent) -> Result<()> {
-    let event: RuneMessage = match event {
+    let event = match event {
         WindowEvent::Close => {
             RuneMessage::WindowClose(window.id)
         },
@@ -189,5 +187,5 @@ fn process_window_event(sender: &RuneMessageBox,  window: &mut RuneWindowInterna
         }
     };
 
-    window.send_message(sender, &event)
+    window.send_message(sender, event)
 }

@@ -1,9 +1,8 @@
-use sdl2;
+use sdl2::pixels;
 
-use mouse::{RuneMouseButton};
 use widget::RuneWidget;
 use canvas::RuneCanvas;
-use message::{RuneMessageHandler, DefaultMessageHandler, RuneMessage, RuneMessageBox};
+use message::{RuneMessageHandler, RuneMessage, RuneMessageBox};
 use error::{Result};
 
 struct CloseWindowHandler;
@@ -11,10 +10,10 @@ struct CloseWindowHandler;
 impl RuneMessageHandler for CloseWindowHandler {
     fn process_messages(&mut self, window_mb: &mut RuneMessageBox, parent_mb: &mut RuneMessageBox) -> Result<()> {
         loop {
-            if let Some((sender, message)) = window_mb.pop_message()? {
+            if let Some((_, message)) = window_mb.pop_message()? {
                 match message {
                     RuneMessage::WindowClose(_) => {
-                        parent_mb.send_message(window_mb, &RuneMessage::ApplicationQuit)?;
+                        parent_mb.send_message(&window_mb, RuneMessage::ApplicationQuit)?;
                     },
                     _ => {
                         // TODO: Nothing more for now
@@ -33,10 +32,10 @@ struct DefaultWindowHandler;
 impl RuneMessageHandler for DefaultWindowHandler {
     fn process_messages(&mut self, window_mb: &mut RuneMessageBox, parent_mb: &mut RuneMessageBox) -> Result<()> {
         loop {
-            if let Some((sender, message)) = window_mb.pop_message()? {
+            if let Some((_, message)) = window_mb.pop_message()? {
                 match message {
                     RuneMessage::WindowClose(id) => {
-                        parent_mb.send_message(window_mb, &RuneMessage::WindowClose(id));
+                        parent_mb.send_message(&window_mb, RuneMessage::WindowClose(id))?;
                     },
                     _ => {
                         // TODO: Nothing more for now
@@ -119,21 +118,42 @@ pub struct RuneWindowInternal {
 
 impl RuneWindowInternal {
     pub fn draw(&mut self) {
+        self.canvas.sdl_canvas.set_draw_color(pixels::Color::RGB(0, 0, 0));
+        self.canvas.sdl_canvas.clear();
+
         for widget in self.rune_window.widgets.iter_mut() {
             widget.draw(&mut self.canvas);
         }
+
+        self.canvas.sdl_canvas.present();
     }
 
     pub fn process_messages(&mut self) -> Result<()> {
+        for i in 1.. {
+            if let Some((_, message)) = self.rune_window.message_box.get(i)? {
+                match message {
+                    RuneMessage::WindowResize(_, _) => {
+                        self.draw();
+                    },
+                    _ => {
+                        // TODO: Nothing more for now
+                    }
+                }
+            } else {
+                break;
+            }
+        }
+
         (self.rune_window.event_handler).process_messages(&mut self.rune_window.message_box, &mut self.rune_window.parent)?;
+
         for widget in self.rune_window.widgets.iter_mut() {
             widget.process_messages()?;
         }
         Ok(())
     }
 
-    pub fn send_message(&mut self, sender: &RuneMessageBox, message: &RuneMessage) -> Result<()> {
-        self.rune_window.message_box.send_message(sender, message)?;
+    pub fn send_message(&mut self, sender: &RuneMessageBox, message: RuneMessage) -> Result<()> {
+        self.rune_window.message_box.send_message(&sender, message)?;
         for widget in self.rune_window.widgets.iter_mut() {
             widget.send_message(sender, message)?;
         }

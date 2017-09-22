@@ -9,9 +9,9 @@ struct CustomWindow {
 }
 
 impl RuneMessageHandler for CustomWindow {
-    fn process_messages(&mut self, window_mb: &mut RuneMessageBox, parent_mb: &mut RuneMessageBox) -> Result<()> {
+    fn process_messages(&mut self, window_mb: &mut RuneMessageBox, _: &mut RuneMessageBox) -> Result<()> {
         loop {
-            if let Some((sender, message)) = window_mb.pop_message()? {
+            if let Some((_, message)) = window_mb.pop_message()? {
                 match message {
                     RuneMessage::WindowClose(_) => {
                         self.counter += 1;
@@ -51,7 +51,5 @@ quick_main!(|| -> Result<()> {
     app.add_window(win2)?;
     app.add_window(win3)?;
 
-    app.run();
-
-    Ok(())
+    app.run()
 });

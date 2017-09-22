@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 
-use error::{Result, ResultExt, ErrorKind};
+use error::{Result, ErrorKind};
 use mouse::{RuneMouseButton};
 
 pub trait RuneMessageHandler {
@@ -49,12 +49,12 @@ impl RuneMessageBox {
         }
     }
 
-    pub fn send_message(&mut self, sender: &RuneMessageBox, message: &RuneMessage) -> Result<()> {
+    pub fn send_message(&mut self, sender: &RuneMessageBox, message: RuneMessage) -> Result<()> {
         match self.message_box.lock() {
             Ok(mut message_box) => {
-                message_box.push_front((Box::new(sender.clone()), message.clone()));
-            }
-            Err(e) => {
+                message_box.push_front((Box::new(sender.clone()), message));
+            },
+            Err(_) => {
                 bail!(ErrorKind::MutexError)
             }
         }
@@ -64,11 +64,26 @@ impl RuneMessageBox {
     pub fn pop_message(&mut self) -> Result<Option<(RuneMessageBox, RuneMessage)>> {
         match self.message_box.lock() {
             Ok(mut message_box) => {
-                Ok(message_box.pop_back().map(|(sender, message)| (*sender, message)))
-            }
-            Err(e) => {
+                Ok(message_box.pop_back().map(|(message_box, message)| (*message_box, message)))
+            },
+            Err(_) => {
                 bail!(ErrorKind::MutexError)
             }
         }
     }
+
+    pub fn get(&self, index: usize) -> Result<Option<(RuneMessageBox, RuneMessage)>> {
+        match self.message_box.lock() {
+            Ok(message_box) => {
+                Ok(message_box.get(index).map(|element| {
+                    let (message_box, message) = element.clone();
+                    (*message_box, message)
+                }))
+            },
+            Err(_) => {
+                bail!(ErrorKind::MutexError)
+            }
+        }
+    }
+
 }

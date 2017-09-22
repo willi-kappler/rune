@@ -2,7 +2,7 @@
 
 extern crate rune;
 
-use rune::{Rune, RuneWindowBuilder, RuneAction, PushButtonBuilder, PushButtonHandler};
+use rune::{Rune, RuneWindowBuilder, PushButtonBuilder, PushMessageHandler};
 
 error_chain!{
     links {

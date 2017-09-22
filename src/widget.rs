@@ -1,4 +1,3 @@
-use mouse::{RuneMouseButton};
 use canvas::RuneCanvas;
 use message::{RuneMessageBox, RuneMessage};
 use error::{Result};
@@ -8,7 +7,7 @@ pub trait RuneWidget {
         // Do nothing in the default implementation
     }
 
-    fn send_message(&mut self, sender: &RuneMessageBox, message: &RuneMessage) -> Result<()> {
+    fn send_message(&mut self, sender: &RuneMessageBox, message: RuneMessage) -> Result<()> {
         Ok(())
     }
 
@@ -43,12 +42,12 @@ impl BaseWidget {
         Ok(())
     }
 
-    pub fn send_message(&mut self, sender: &RuneMessageBox, message: &RuneMessage) -> Result<()> {
+    pub fn send_message(&mut self, sender: &RuneMessageBox, message: RuneMessage) -> Result<()> {
         // TODO
         Ok(())
     }
 
-    pub fn set_parent(&mut self, parent: RuneMessageBox) {
-        self.parent = parent;
+    pub fn set_parent(&mut self, parent: &RuneMessageBox) {
+        self.parent = parent.clone();
     }
 }

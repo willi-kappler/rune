@@ -23,7 +23,7 @@ impl RuneWidget for PushButton {
              self.base_widget.width, self.base_widget.height));
     }
 
-    fn send_message(&mut self, sender: &RuneMessageBox, message: &RuneMessage) -> Result<()> {
+    fn send_message(&mut self, sender: &RuneMessageBox, message: RuneMessage) -> Result<()> {
         self.message_box.send_message(sender, message)?;
         self.base_widget.send_message(sender, message)
     }
@@ -65,6 +65,8 @@ impl PushButtonBuilder {
     }
 
     pub fn build(self) -> PushButton {
+        let message_box = RuneMessageBox::new();
+
         PushButton {
             base_widget: BaseWidget {
                 id: 0,
@@ -74,11 +76,11 @@ impl PushButtonBuilder {
                 height: self.height,
                 mouse_inside: false,
                 message_box: RuneMessageBox::new(),
-                parent: RuneMessageBox::new(),
+                parent: message_box.clone(),
             },
             text: self.text,
             pressed: false,
-            message_box: RuneMessageBox::new(),
+            message_box: message_box,
             parent: RuneMessageBox::new(),
             event_handler: self.event_handler,
         }
