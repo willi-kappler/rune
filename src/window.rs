@@ -117,58 +117,61 @@ impl RuneWindowInternal {
         }
     }
 
+    pub fn contains_point<T>(&self, widget: &Box<T>, x: u32, y: u32) -> bool where T: 'static + RuneWidget {
+        let wx = widget.get_x();
+        let wy = widget.get_y();
+        let ww = widget.get_width();
+        let wh = widget.get_height();
+
+        (x >= wx && x <= (wx + ww)) && (y >= wy && y <= (wy + wh))
+    }
+
     pub fn mouse_press(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
-        let mut result = None;
-
         for widget in self.rune_window.widgets.iter_mut() {
-            if widget.contains_point(x, y) {
-                let wx = widget.x();
-                let wy = widget.y();
+            if self.contains_point(widget, x, y) {
+                let wx = widget.get_x();
+                let wy = widget.get_y();
 
-                result = widget.on_mouse_press(mouse_button, x - wx, y - wy);
-                break;
+                return widget.on_mouse_press(mouse_button, x - wx, y - wy);
             }
         }
 
-        result
+        None
     }
 
     pub fn mouse_release(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
-        let mut result = None;
-
         for widget in self.rune_window.widgets.iter_mut() {
-            if widget.contains_point(x, y) {
-                let wx = widget.x();
-                let wy = widget.y();
+            if self.contains_point(widget, x, y) {
+                let wx = widget.get_x();
+                let wy = widget.get_y();
 
-                result = widget.on_mouse_release(mouse_button, x - wx, y - wy);
-                break;
+                return widget.on_mouse_release(mouse_button, x - wx, y - wy);
             }
         }
 
-        result
+        None
     }
 
     pub fn mouse_move(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
-        let mut result = None;
-
         for widget in self.rune_window.widgets.iter_mut() {
-            if widget.contains_point(x, y) {
-                let wx = widget.x();
-                let wy = widget.y();
+            if self.contains_point(widget, x, y) {
+                let wx = widget.get_x();
+                let wy = widget.get_y();
 
-                if !widget.mouse_inside() {
+                if !widget.get_mouse_inside() {
+                    widget.set_mouse_inside(true);
                     widget.on_mouse_enter();
                 }
-                result = widget.on_mouse_move(mouse_button, x - wx, y - wy);
+                return widget.on_mouse_move(mouse_button, x - wx, y - wy);
             } else {
-                if widget.mouse_inside() {
-                    widget.on_mouse_leave()
+                if widget.get_mouse_inside() {
+                    widget.set_mouse_inside(false);
+                    widget.on_mouse_leave();
                 }
             }
         }
 
-        result
+        None
     }
 
 }

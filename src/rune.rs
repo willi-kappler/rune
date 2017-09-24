@@ -84,6 +84,13 @@ impl Rune {
     pub fn run(&mut self) {
         self.quit = false;
 
+        for window in self.windows.iter_mut() {
+            window.canvas.sdl_canvas.set_draw_color(pixels::Color::RGB(0, 0, 0));
+            window.canvas.sdl_canvas.clear();
+            window.draw();
+            window.canvas.sdl_canvas.present();
+        }
+
         while !self.quit {
             for event in self.event_pump.poll_iter() {
                 for window in self.windows.iter_mut() {
@@ -99,14 +106,6 @@ impl Rune {
                         }
                     }
                 }
-            }
-
-            for window in self.windows.iter_mut() {
-                window.canvas.sdl_canvas.set_draw_color(pixels::Color::RGB(0, 0, 0));
-                window.canvas.sdl_canvas.clear();
-                window.draw();
-                window.canvas.sdl_canvas.present();
-
             }
         }
     }
@@ -167,7 +166,12 @@ fn process_window_event(window: &mut RuneWindowInternal, event: sdl2::event::Win
             (window.rune_window.event_handler).on_move(x, y)
         },
         WindowEvent::Resized(w, h) => {
-            (window.rune_window.event_handler).on_resize(w, h)
+            window.canvas.sdl_canvas.set_draw_color(pixels::Color::RGB(0, 0, 0));
+            window.canvas.sdl_canvas.clear();
+            window.draw();
+            let result =  (window.rune_window.event_handler).on_resize(w, h);
+            window.canvas.sdl_canvas.present();
+            result
         },
         WindowEvent::Minimized => {
             (window.rune_window.event_handler).on_minimize()
