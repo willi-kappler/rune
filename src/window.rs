@@ -117,18 +117,9 @@ impl RuneWindowInternal {
         }
     }
 
-    pub fn contains_point<T>(&self, widget: &Box<T>, x: u32, y: u32) -> bool where T: 'static + RuneWidget {
-        let wx = widget.get_x();
-        let wy = widget.get_y();
-        let ww = widget.get_width();
-        let wh = widget.get_height();
-
-        (x >= wx && x <= (wx + ww)) && (y >= wy && y <= (wy + wh))
-    }
-
     pub fn mouse_press(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
         for widget in self.rune_window.widgets.iter_mut() {
-            if self.contains_point(widget, x, y) {
+            if contains_point(widget, x, y) {
                 let wx = widget.get_x();
                 let wy = widget.get_y();
 
@@ -141,7 +132,7 @@ impl RuneWindowInternal {
 
     pub fn mouse_release(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
         for widget in self.rune_window.widgets.iter_mut() {
-            if self.contains_point(widget, x, y) {
+            if contains_point(widget, x, y) {
                 let wx = widget.get_x();
                 let wy = widget.get_y();
 
@@ -154,7 +145,7 @@ impl RuneWindowInternal {
 
     pub fn mouse_move(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
         for widget in self.rune_window.widgets.iter_mut() {
-            if self.contains_point(widget, x, y) {
+            if contains_point(widget, x, y) {
                 let wx = widget.get_x();
                 let wy = widget.get_y();
 
@@ -174,4 +165,13 @@ impl RuneWindowInternal {
         None
     }
 
+}
+
+fn contains_point(widget: &Box<RuneWidget>, x: u32, y: u32) -> bool {
+    let wx = widget.get_x();
+    let wy = widget.get_y();
+    let ww = widget.get_width();
+    let wh = widget.get_height();
+
+    (x >= wx && x <= (wx + ww)) && (y >= wy && y <= (wy + wh))
 }
