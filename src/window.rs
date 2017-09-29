@@ -1,5 +1,3 @@
-use sdl2;
-
 use rune::{RuneAction, RuneMouseButton};
 use widget::RuneWidget;
 use canvas::RuneCanvas;

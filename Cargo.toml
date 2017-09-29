@@ -17,5 +17,5 @@ error-chain = "0.10.0"
 
 [dependencies.sdl2]
 version = "0.30"
-#features = ["image"]
+features = ["image", "gfx", "ttf"]
 #features = ["ttf","image","gfx","mixer"]

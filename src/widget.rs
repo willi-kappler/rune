@@ -3,9 +3,7 @@ use rune::{RuneAction, RuneMouseButton};
 use canvas::RuneCanvas;
 
 pub trait RuneWidget {
-    fn draw(&mut self, canvas: &mut RuneCanvas) {
-        // Do nothing in the default implementation
-    }
+    fn draw(&mut self, canvas: &mut RuneCanvas);
 
     fn get_x(&self) -> u32;
 

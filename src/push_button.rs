@@ -1,9 +1,6 @@
-use sdl2::pixels;
-use sdl2::rect::Rect;
-
 use rune::{RuneAction, RuneMouseButton};
 use widget::{RuneWidget};
-use canvas::RuneCanvas;
+use canvas::{RuneCanvas, RuneColor};
 
 pub trait PushButtonHandler {
     fn on_click(&mut self) -> Option<RuneAction> {
@@ -69,10 +66,13 @@ impl RuneWidget for PushButton {
     }
 
     fn draw(&mut self, canvas: &mut RuneCanvas) {
-        canvas.sdl_canvas.set_draw_color(pixels::Color::RGB(255, 255, 255));
-        canvas.sdl_canvas.draw_rect(Rect::new(
-             self.x as i32, self.y as i32,
-             self.width, self.height));
+        canvas.set_fg_color(RuneColor::RGB(255, 255, 255));
+        canvas.draw_rect(self.x, self.y, self.width, self.height);
+
+//        canvas.sdl_canvas.set_draw_color(pixels::Color::RGB(255, 255, 255));
+//        canvas.sdl_canvas.draw_rect(Rect::new(
+//             self.x as i32, self.y as i32,
+//             self.width, self.height));
     }
 
     fn on_mouse_press(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
@@ -103,8 +103,6 @@ pub struct PushButtonBuilder {
     text: String,
     event_handler: Box<PushButtonHandler>,
  }
-
-
 
 impl PushButtonBuilder {
     pub fn new(text: &str, x: u32, y: u32) -> PushButtonBuilder {
