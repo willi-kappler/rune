@@ -71,10 +71,12 @@ impl Rune {
         sdl_canvas.clear();
         sdl_canvas.present();
 
+        let sdl_ttf = sdl2::ttf::init()?;
+
         self.windows.push(RuneWindowInternal{
             rune_window,
             id,
-            canvas: RuneCanvas{ sdl_canvas },
+            canvas: RuneCanvas{ sdl_canvas, sdl_ttf  },
         });
 
         Ok(())

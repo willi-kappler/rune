@@ -23,6 +23,7 @@ impl RuneColor {
 
 pub struct RuneCanvas {
     pub sdl_canvas: sdl2::render::Canvas<sdl2::video::Window>,
+    pub sdl_ttf: sdl2::ttf::Sdl2TtfContext,
     // TODO
 }
 
@@ -35,5 +36,8 @@ impl RuneCanvas {
         self.sdl_canvas.draw_rect(Rect::new(
             x as i32, y as i32, w, h
         ));
+    }
+
+    pub fn draw_text(&mut self, x: u32, y: u32, test: &str) {
     }
 }
