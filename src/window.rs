@@ -123,7 +123,7 @@ impl RuneWindowInternal {
                 let wx = widget.get_x();
                 let wy = widget.get_y();
 
-                rune_actions.append(widget.on_mouse_press(mouse_button, x - wx, y - wy));
+                rune_actions.extend(widget.on_mouse_press(mouse_button, x - wx, y - wy));
             }
         }
 
@@ -138,7 +138,7 @@ impl RuneWindowInternal {
                 let wx = widget.get_x();
                 let wy = widget.get_y();
 
-                rune_actions.append(widget.on_mouse_release(mouse_button, x - wx, y - wy));
+                rune_actions.extend(widget.on_mouse_release(mouse_button, x - wx, y - wy));
             }
         }
 
@@ -157,7 +157,7 @@ impl RuneWindowInternal {
                     widget.set_mouse_inside(true);
                     widget.on_mouse_enter();
                 }
-                rune_actions.append(widget.on_mouse_move(mouse_button, x - wx, y - wy));
+                rune_actions.extend(widget.on_mouse_move(mouse_button, x - wx, y - wy));
             } else {
                 if widget.get_mouse_inside() {
                     widget.set_mouse_inside(false);

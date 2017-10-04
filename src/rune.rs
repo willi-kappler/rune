@@ -107,7 +107,10 @@ impl Rune {
                                 window.canvas.sdl_canvas.window_mut().hide();
                             },
                             RuneAction::RedrawNeeded => {
+                                window.canvas.sdl_canvas.set_draw_color(pixels::Color::RGB(0, 0, 0));
+                                window.canvas.sdl_canvas.clear();
                                 window.draw();
+                                window.canvas.sdl_canvas.present();
                             }
                         }
                     }
@@ -123,17 +126,17 @@ fn process_event(window: &mut RuneWindowInternal, event: &sdl2::event::Event) ->
     match *event {
         Event::Window { timestamp: _, window_id: id, win_event: window_event } => {
             if window.id == id {
-                rune_actions.append(process_window_event(window, window_event));
+                rune_actions.extend(process_window_event(window, window_event));
             }
         },
         Event::MouseButtonDown { timestamp: _, window_id: id, which: _, mouse_btn: btn, x, y } => {
             if window.id == id {
-                rune_actions.append(process_mouse_press_event(window, btn.into(), x, y));
+                rune_actions.extend(process_mouse_press_event(window, btn.into(), x, y));
             }
         },
         Event::MouseButtonUp { timestamp: _, window_id: id, which: _, mouse_btn: btn, x, y } => {
             if window.id == id {
-                rune_actions.append(process_mouse_release_event(window, btn.into(), x, y));
+                rune_actions.extend(process_mouse_release_event(window, btn.into(), x, y));
             }
         }
         Event::MouseMotion { timestamp: _, window_id: id, which: _, mousestate: state, x, y, xrel: dx, yrel: dy } => {
@@ -147,7 +150,7 @@ fn process_event(window: &mut RuneWindowInternal, event: &sdl2::event::Event) ->
                 } else {
                     RuneMouseButton::Unknown
                 };
-                rune_actions.append(process_mouse_move_event(window, btn, x, y));
+                rune_actions.extend(process_mouse_move_event(window, btn, x, y));
             }
         },
         _ => {
@@ -163,26 +166,26 @@ fn process_window_event(window: &mut RuneWindowInternal, event: sdl2::event::Win
 
     match event {
         WindowEvent::Close => {
-            rune_actions.append((window.rune_window.event_handler).on_close());
+            rune_actions.extend((window.rune_window.event_handler).on_close());
         },
         WindowEvent::Moved(x, y) => {
-            rune_actions.append((window.rune_window.event_handler).on_move(x, y));
+            rune_actions.extend((window.rune_window.event_handler).on_move(x, y));
         },
         WindowEvent::Resized(w, h) => {
-            rune_actions.append((window.rune_window.event_handler).on_resize(w, h));
+            rune_actions.extend((window.rune_window.event_handler).on_resize(w, h));
             rune_actions.push(RuneAction::RedrawNeeded);
         },
         WindowEvent::Minimized => {
-            rune_actions.append((window.rune_window.event_handler).on_minimize());
+            rune_actions.extend((window.rune_window.event_handler).on_minimize());
         },
         WindowEvent::Maximized => {
-            rune_actions.append((window.rune_window.event_handler).on_maximize());
+            rune_actions.extend((window.rune_window.event_handler).on_maximize());
         },
         WindowEvent::Enter => {
-            rune_actions.append((window.rune_window.event_handler).on_enter());
+            rune_actions.extend((window.rune_window.event_handler).on_enter());
         },
         WindowEvent::Leave => {
-            rune_actions.append((window.rune_window.event_handler).on_leave());
+            rune_actions.extend((window.rune_window.event_handler).on_leave());
         },
         _ => {
             // TODO: add more events...

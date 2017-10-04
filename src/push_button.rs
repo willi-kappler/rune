@@ -85,7 +85,7 @@ impl RuneWidget for PushButton {
 
         if self.pressed {
             self.pressed = false;
-            rune_actions.append((self.event_handler).on_click());
+            rune_actions.extend((self.event_handler).on_click());
         }
 
         rune_actions
@@ -93,7 +93,7 @@ impl RuneWidget for PushButton {
 
     fn on_mouse_leave(&mut self) -> Vec<RuneAction> {
         self.pressed = false;
-        Vec::new();
+        Vec::new()
     }
 }
 

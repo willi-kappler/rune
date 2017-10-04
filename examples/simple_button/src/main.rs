@@ -15,7 +15,8 @@ struct Button1 {
 }
 
 impl PushButtonHandler for Button1 {
-    fn on_click(&mut self) -> Option<RuneAction> {
+    fn on_click(&mut self) -> Vec<RuneAction> {
+        let rune_actions = Vec::new();
         self.counter += 1;
 
         if self.counter == 1 {
@@ -24,17 +25,17 @@ impl PushButtonHandler for Button1 {
             println!("Button pressed {} times", self.counter);
         }
 
-        None
+        rune_actions
     }
 }
 
 struct Button2;
 
 impl PushButtonHandler for Button2 {
-    fn on_click(&mut self) -> Option<RuneAction> {
+    fn on_click(&mut self) -> Vec<RuneAction> {
         println!("Bye!");
 
-        Some(RuneAction::ApplicationQuit)
+        vec![RuneAction::ApplicationQuit]
     }
 }
 
