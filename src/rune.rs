@@ -37,6 +37,7 @@ pub struct Rune {
     // sdl_context: sdl2::Sdl,
     video_subsystem: sdl2::VideoSubsystem,
     event_pump: sdl2::EventPump,
+    sdl_ttf: sdl2::ttf::Sdl2TtfContext,
     windows: Vec<RuneWindowInternal>,
     quit: bool,
 }
@@ -46,12 +47,14 @@ impl Rune {
         let sdl_context = sdl2::init()?;
         let video_subsystem = sdl_context.video()?;
         let event_pump = sdl_context.event_pump()?;
+        let sdl_ttf = sdl2::ttf::init()?;
 
         Ok(
             Rune {
                 // sdl_context: sdl_context,
                 video_subsystem: video_subsystem,
                 event_pump: event_pump,
+                sdl_ttf,
                 windows: Vec::new(),
                 quit: false,
             }
@@ -71,12 +74,10 @@ impl Rune {
         sdl_canvas.clear();
         sdl_canvas.present();
 
-        let sdl_ttf = sdl2::ttf::init()?;
-
         self.windows.push(RuneWindowInternal{
             rune_window,
             id,
-            canvas: RuneCanvas{ sdl_canvas, sdl_ttf  },
+            canvas: RuneCanvas{ sdl_canvas },
         });
 
         Ok(())

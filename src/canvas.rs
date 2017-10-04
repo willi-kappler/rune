@@ -23,7 +23,6 @@ impl RuneColor {
 
 pub struct RuneCanvas {
     pub sdl_canvas: sdl2::render::Canvas<sdl2::video::Window>,
-    pub sdl_ttf: sdl2::ttf::Sdl2TtfContext,
     // TODO
 }
 
