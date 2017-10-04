@@ -3,8 +3,8 @@ use widget::{RuneWidget};
 use canvas::{RuneCanvas, RuneColor};
 
 pub trait PushButtonHandler {
-    fn on_click(&mut self) -> Option<RuneAction> {
-        None
+    fn on_click(&mut self) -> Vec<RuneAction> {
+        Vec::new()
     }
 }
 
@@ -75,23 +75,25 @@ impl RuneWidget for PushButton {
 //             self.width, self.height));
     }
 
-    fn on_mouse_press(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
+    fn on_mouse_press(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Vec<RuneAction> {
         self.pressed = true;
-        None
+        Vec::new()
     }
 
-    fn on_mouse_release(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
+    fn on_mouse_release(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Vec<RuneAction> {
+        let mut rune_actions: Vec<RuneAction> = Vec::new();
+
         if self.pressed {
             self.pressed = false;
-            (self.event_handler).on_click()
-        } else {
-            None
+            rune_actions.append((self.event_handler).on_click());
         }
+
+        rune_actions
     }
 
-    fn on_mouse_leave(&mut self) -> Option<RuneAction> {
+    fn on_mouse_leave(&mut self) -> Vec<RuneAction> {
         self.pressed = false;
-        None
+        Vec::new();
     }
 }
 

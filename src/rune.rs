@@ -12,6 +12,7 @@ use canvas::{RuneCanvas};
 pub enum RuneAction {
     ApplicationQuit,
     WindowHide,
+    RedrawNeeded,
 }
 
 #[derive(Clone, Copy)]
@@ -97,15 +98,17 @@ impl Rune {
         while !self.quit {
             for event in self.event_pump.poll_iter() {
                 for window in self.windows.iter_mut() {
-                    match process_event(window, &event) {
-                        Some(RuneAction::ApplicationQuit) => {
-                            self.quit = true
-                        },
-                        Some(RuneAction::WindowHide) => {
-                            window.canvas.sdl_canvas.window_mut().hide();
-                        },
-                        _ => {
-                            // Nothing else for now...
+                    for rune_action in process_event(window, &event) {
+                        match rune_action {
+                            RuneAction::ApplicationQuit => {
+                                self.quit = true
+                            },
+                            RuneAction::WindowHide => {
+                                window.canvas.sdl_canvas.window_mut().hide();
+                            },
+                            RuneAction::RedrawNeeded => {
+                                window.draw();
+                            }
                         }
                     }
                 }
@@ -114,27 +117,23 @@ impl Rune {
     }
 }
 
-fn process_event(window: &mut RuneWindowInternal, event: &sdl2::event::Event) -> Option<RuneAction> {
+fn process_event(window: &mut RuneWindowInternal, event: &sdl2::event::Event) -> Vec<RuneAction> {
+    let mut rune_actions: Vec<RuneAction> = Vec::new();
+
     match *event {
         Event::Window { timestamp: _, window_id: id, win_event: window_event } => {
             if window.id == id {
-                process_window_event(window, window_event)
-            } else {
-                None
+                rune_actions.append(process_window_event(window, window_event));
             }
         },
         Event::MouseButtonDown { timestamp: _, window_id: id, which: _, mouse_btn: btn, x, y } => {
             if window.id == id {
-                process_mouse_press_event(window, btn.into(), x, y)
-            } else {
-                None
+                rune_actions.append(process_mouse_press_event(window, btn.into(), x, y));
             }
         },
         Event::MouseButtonUp { timestamp: _, window_id: id, which: _, mouse_btn: btn, x, y } => {
             if window.id == id {
-                process_mouse_release_event(window, btn.into(), x, y)
-            } else {
-                None
+                rune_actions.append(process_mouse_release_event(window, btn.into(), x, y));
             }
         }
         Event::MouseMotion { timestamp: _, window_id: id, which: _, mousestate: state, x, y, xrel: dx, yrel: dy } => {
@@ -148,64 +147,62 @@ fn process_event(window: &mut RuneWindowInternal, event: &sdl2::event::Event) ->
                 } else {
                     RuneMouseButton::Unknown
                 };
-                process_mouse_move_event(window, btn, x, y)
-            } else {
-                None
+                rune_actions.append(process_mouse_move_event(window, btn, x, y));
             }
         },
         _ => {
             // TODO: add more events...
-            None
         }
     }
+
+    rune_actions
 }
 
-fn process_window_event(window: &mut RuneWindowInternal, event: sdl2::event::WindowEvent)  -> Option<RuneAction> {
+fn process_window_event(window: &mut RuneWindowInternal, event: sdl2::event::WindowEvent)  -> Vec<RuneAction> {
+    let mut rune_actions: Vec<RuneAction> = Vec::new();
+
     match event {
         WindowEvent::Close => {
-            (window.rune_window.event_handler).on_close()
+            rune_actions.append((window.rune_window.event_handler).on_close());
         },
         WindowEvent::Moved(x, y) => {
-            (window.rune_window.event_handler).on_move(x, y)
+            rune_actions.append((window.rune_window.event_handler).on_move(x, y));
         },
         WindowEvent::Resized(w, h) => {
-            window.canvas.sdl_canvas.set_draw_color(pixels::Color::RGB(0, 0, 0));
-            window.canvas.sdl_canvas.clear();
-            window.draw();
-            let result =  (window.rune_window.event_handler).on_resize(w, h);
-            window.canvas.sdl_canvas.present();
-            result
+            rune_actions.append((window.rune_window.event_handler).on_resize(w, h));
+            rune_actions.push(RuneAction::RedrawNeeded);
         },
         WindowEvent::Minimized => {
-            (window.rune_window.event_handler).on_minimize()
+            rune_actions.append((window.rune_window.event_handler).on_minimize());
         },
         WindowEvent::Maximized => {
-            (window.rune_window.event_handler).on_maximize()
+            rune_actions.append((window.rune_window.event_handler).on_maximize());
         },
         WindowEvent::Enter => {
-            (window.rune_window.event_handler).on_enter()
+            rune_actions.append((window.rune_window.event_handler).on_enter());
         },
         WindowEvent::Leave => {
-            (window.rune_window.event_handler).on_leave()
+            rune_actions.append((window.rune_window.event_handler).on_leave());
         },
         _ => {
             // TODO: add more events...
-            None
         }
     }
+
+    rune_actions
 }
 
 
-fn process_mouse_press_event(window: &mut RuneWindowInternal, mouse_button: RuneMouseButton, x: i32, y: i32) -> Option<RuneAction> {
+fn process_mouse_press_event(window: &mut RuneWindowInternal, mouse_button: RuneMouseButton, x: i32, y: i32) -> Vec<RuneAction> {
     // println!("rune.rs: process_mouse_press_event: {}, {}", x, y);
     window.mouse_press(mouse_button, x as u32, y as u32)
 }
 
-fn process_mouse_release_event(window: &mut RuneWindowInternal, mouse_button: RuneMouseButton, x: i32, y: i32) -> Option<RuneAction> {
+fn process_mouse_release_event(window: &mut RuneWindowInternal, mouse_button: RuneMouseButton, x: i32, y: i32) -> Vec<RuneAction> {
     // println!("rune.rs: process_mouse_release_event: {}, {}", x, y);
     window.mouse_release(mouse_button, x as u32, y as u32)
 }
 
-fn process_mouse_move_event(window: &mut RuneWindowInternal, mouse_button: RuneMouseButton, x: i32, y: i32) -> Option<RuneAction> {
+fn process_mouse_move_event(window: &mut RuneWindowInternal, mouse_button: RuneMouseButton, x: i32, y: i32) -> Vec<RuneAction> {
     window.mouse_move(mouse_button, x as u32, y as u32)
 }

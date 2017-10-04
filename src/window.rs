@@ -115,33 +115,39 @@ impl RuneWindowInternal {
         }
     }
 
-    pub fn mouse_press(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
+    pub fn mouse_press(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Vec<RuneAction> {
+        let mut rune_actions: Vec<RuneAction> = Vec::new();
+
         for widget in self.rune_window.widgets.iter_mut() {
             if contains_point(widget, x, y) {
                 let wx = widget.get_x();
                 let wy = widget.get_y();
 
-                return widget.on_mouse_press(mouse_button, x - wx, y - wy);
+                rune_actions.append(widget.on_mouse_press(mouse_button, x - wx, y - wy));
             }
         }
 
-        None
+        rune_actions
     }
 
-    pub fn mouse_release(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
+    pub fn mouse_release(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Vec<RuneAction> {
+        let mut rune_actions: Vec<RuneAction> = Vec::new();
+
         for widget in self.rune_window.widgets.iter_mut() {
             if contains_point(widget, x, y) {
                 let wx = widget.get_x();
                 let wy = widget.get_y();
 
-                return widget.on_mouse_release(mouse_button, x - wx, y - wy);
+                rune_actions.append(widget.on_mouse_release(mouse_button, x - wx, y - wy));
             }
         }
 
-        None
+        rune_actions
     }
 
-    pub fn mouse_move(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
+    pub fn mouse_move(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Vec<RuneAction> {
+        let mut rune_actions: Vec<RuneAction> = Vec::new();
+
         for widget in self.rune_window.widgets.iter_mut() {
             if contains_point(widget, x, y) {
                 let wx = widget.get_x();
@@ -151,7 +157,7 @@ impl RuneWindowInternal {
                     widget.set_mouse_inside(true);
                     widget.on_mouse_enter();
                 }
-                return widget.on_mouse_move(mouse_button, x - wx, y - wy);
+                rune_actions.append(widget.on_mouse_move(mouse_button, x - wx, y - wy));
             } else {
                 if widget.get_mouse_inside() {
                     widget.set_mouse_inside(false);
@@ -160,7 +166,7 @@ impl RuneWindowInternal {
             }
         }
 
-        None
+        rune_actions
     }
 
 }

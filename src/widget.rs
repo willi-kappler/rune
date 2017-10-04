@@ -25,24 +25,23 @@ pub trait RuneWidget {
 
     fn set_mouse_inside(&mut self, mouse_inside: bool);
 
-    fn on_mouse_press(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
-        None
+    fn on_mouse_press(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Vec<RuneAction> {
+        Vec::new()
     }
 
-    fn on_mouse_release(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
-        None
+    fn on_mouse_release(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Vec<RuneAction> {
+        Vec::new()
     }
 
-    fn on_mouse_move(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Option<RuneAction> {
-        None
+    fn on_mouse_move(&mut self, mouse_button: RuneMouseButton, x: u32, y: u32) -> Vec<RuneAction> {
+        Vec::new()
     }
 
-    fn on_mouse_enter(&mut self) -> Option<RuneAction> {
-        None
+    fn on_mouse_enter(&mut self) -> Vec<RuneAction> {
+        Vec::new()
     }
 
-    fn on_mouse_leave(&mut self) -> Option<RuneAction> {
-        None
+    fn on_mouse_leave(&mut self) -> Vec<RuneAction> {
+        Vec::new()
     }
-
 }
