@@ -14,3 +14,6 @@ documentation = "https://docs.rs/rune/0.1.0/rune/"
 
 [dependencies]
 failure = "0.1.2"
+lazy_static = "1.1.0"
+log = "0.4.3"
+# derive_builder = "0.5.1"
