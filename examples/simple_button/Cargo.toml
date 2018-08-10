@@ -1,9 +1,0 @@
-[package]
-name = "simple_window"
-version = "0.1.0"
-authors = ["Willi Kappler <grandor@gmx.de>"]
-license = "MIT"
-
-[dependencies]
-error-chain = "0.10.0"
-rune = {path = "../../../rune"}
